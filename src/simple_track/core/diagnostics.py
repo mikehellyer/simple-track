@@ -32,7 +32,7 @@ APP_LOG_MAX_BYTES = 2_000_000
 
 
 def log_dir() -> Path:
-    return Path(user_log_dir("Simple-Train"))
+    return Path(user_log_dir("Simple-Track"))
 
 
 def enable_crash_log(directory: Optional[Path] = None) -> Optional[Path]:
@@ -70,7 +70,7 @@ def enable_app_log(version: str, directory: Optional[Path] = None, redirect_stde
     except OSError:
         return None
 
-    _app_log_file.write(f"\n{_stamp()} started Simple-Train {version} (pid {os.getpid()})\n")
+    _app_log_file.write(f"\n{_stamp()} started Simple-Track {version} (pid {os.getpid()})\n")
     if redirect_stderr:
         try:
             sys.stderr.flush()

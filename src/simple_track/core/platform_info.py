@@ -1,4 +1,4 @@
-"""Facts about the machine Simple-Train is running on."""
+"""Facts about the machine Simple-Track is running on."""
 from __future__ import annotations
 
 import platform

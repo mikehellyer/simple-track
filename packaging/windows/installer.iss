@@ -1,6 +1,6 @@
-; Inno Setup script for Simple-Train.
+; Inno Setup script for Simple-Track.
 ; Built with: iscc packaging\windows\installer.iss
-; Expects dist\Simple-Train\ (PyInstaller onedir output) to already
+; Expects dist\Simple-Track\ (PyInstaller onedir output) to already
 ; exist, and the version passed in via /DAppVersion=x.y.z (the release
 ; workflow does this so the .iss file never has to be hand-edited per
 ; release).
@@ -9,7 +9,7 @@
   #define AppVersion "0.0.0"
 #endif
 
-#define AppName "Simple-Train"
+#define AppName "Simple-Track"
 #define RepoRoot AddBackslash(SourcePath) + "..\.."
 
 [Setup]
@@ -19,9 +19,9 @@ AppVersion={#AppVersion}
 AppPublisher=Mike Hellyer
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
-UninstallDisplayIcon={app}\Simple-Train.exe
+UninstallDisplayIcon={app}\Simple-Track.exe
 OutputDir={#RepoRoot}\dist
-OutputBaseFilename=Simple-Train-{#AppVersion}-Windows-Setup
+OutputBaseFilename=Simple-Track-{#AppVersion}-Windows-Setup
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -34,12 +34,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Files]
-Source: "{#RepoRoot}\dist\Simple-Train\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RepoRoot}\dist\Simple-Track\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\Simple-Train.exe"
+Name: "{group}\{#AppName}"; Filename: "{app}\Simple-Track.exe"
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\Simple-Train.exe"; Tasks: desktopicon
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\Simple-Track.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Simple-Train.exe"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Simple-Track.exe"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
