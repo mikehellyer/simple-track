@@ -32,11 +32,18 @@ in that script and re-run it.
 - **Tab** turns round the piece you just added. Use it to make a curve bend the other way
   or to put a point in backwards.
 - **Click a red end** (a free connector) to build from there instead.
-- **Drag** pieces already on the layout to move them. When a free end comes close to
+- **Drag** pieces already on the layout to move them. Grab them anywhere, even right
+  by an end; a plain click on a free end still makes it the orange end. When a free end comes close to
   another one (up to 45° out of line), a green ring shows where it will join, and it
   snaps on when you let go.
-- **R** / **Shift+R** rotates the selection 15°, **Del** deletes it, and Ctrl-click
-  selects more than one piece.
+- **Selecting several pieces:**
+  - Shift- or Ctrl-click adds a piece to the selection.
+  - Drag a box round pieces on empty board.
+  - **Double-click** a piece to select it and all the track joined to it. Edit ▸
+    Select connected track does the same for the selected piece.
+  - Drag any selected piece to move the whole selection. When one of its free ends
+    comes near another free end, the selection turns and joins on as a whole.
+- **R** / **Shift+R** rotates the selection 15°, and **Del** deletes it.
 - **Wheel** zooms, **right- or middle-drag** pans, and **F** zooms to fit.
 - **Undo/redo:** Ctrl+Z / Ctrl+Shift+Z.
 - **File:** layouts save as `.strack` files (JSON). Open them from File ▸ Open.

@@ -10,7 +10,7 @@ import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPainterPathStroker, QPen
-from PySide6.QtWidgets import QGraphicsItem, QGraphicsScene, QGraphicsView
+from PySide6.QtWidgets import QApplication, QGraphicsItem, QGraphicsScene, QGraphicsView
 
 from simple_track.core.geometry import Point, Pose, Transform, offset_polyline
 from simple_track.core.layout import ImportedPiece, Layout, Piece, PlacedPiece
@@ -125,6 +125,11 @@ class ConnectorLayer(QGraphicsItem):
     def boundingRect(self) -> QRectF:
         return self._bounds
 
+    def shape(self) -> QPainterPath:
+        # Only drawn, never clicked: an empty shape lets clicks through to
+        # the track underneath (its bounds cover the whole layout).
+        return QPainterPath()
+
     def paint(self, painter: QPainter, option, widget=None) -> None:
         painter.setRenderHint(QPainter.Antialiasing, True)
         scale = painter.worldTransform().m11() or 1.0
@@ -167,12 +172,15 @@ class LayoutCanvas(QGraphicsView):
         self.layout_model = Layout()
         self._items: dict[str, TrackItem] = {}
         self._connectors = ConnectorLayer()
+        self._connectors.setAcceptedMouseButtons(Qt.NoButton)
         self.scene().addItem(self._connectors)
         self.active: tuple[str, int] | None = None  # (piece id, connector index)
         self._last_placed: tuple[str, int, Pose] | None = None  # (piece id, local index, target)
         self._drag_from: Point | None = None
         self._dragged = False
         self._pan_from: QPointF | None = None
+        self._press_at = QPointF()
+        self._click_end: tuple[str, int] | None = None  # a free end pressed on, made active if it's just a click
         self._ghost: TrackItem | None = None  # the piece being dragged in from the library
         # A bound method, not a lambda: Qt drops it when the canvas goes, so a
         # selection change during teardown can't reach a deleted view.
@@ -220,6 +228,19 @@ class LayoutCanvas(QGraphicsView):
             return None
         connectors = piece.connectors()
         return connectors[self.active[1]] if self.active[1] < len(connectors) else None
+
+    def track_item_at(self, view_pos) -> "TrackItem | None":
+        """The piece of track under a point of the view, if any."""
+        for item in self.items(view_pos):
+            if isinstance(item, TrackItem) and item is not self._ghost:
+                return item
+        return None
+
+    def select_connected(self, piece: Piece) -> None:
+        """Select the piece and everything joined to it."""
+        joined = {p.id for p in self.layout_model.connected(piece)}
+        for piece_id, item in self._items.items():
+            item.setSelected(piece_id in joined)
 
     def selected_pieces(self) -> list[Piece]:
         return [item.piece for item in self.scene().selectedItems() if isinstance(item, TrackItem)]
@@ -440,23 +461,38 @@ class LayoutCanvas(QGraphicsView):
             return
         if event.button() == Qt.LeftButton:
             picked = self._pick_connector(scene_pos)
-            if picked is not None:
-                self.active = picked
-                self._last_placed = None
-                self._update_connectors()
+            item = self.track_item_at(event.position().toPoint())
+            if picked is not None and item is None:
+                self._make_active(picked)
                 return
-            item = self.itemAt(event.position().toPoint())
-            if isinstance(item, TrackItem):
-                if event.modifiers() & Qt.ControlModifier:
+            if item is not None:
+                if event.modifiers() & (Qt.ControlModifier | Qt.ShiftModifier):
                     item.setSelected(not item.isSelected())
                     return
                 if not item.isSelected():
                     self.scene().clearSelection()
                     item.setSelected(True)
+                # Near a free end, a click (no drag) makes it the orange end;
+                # pulling the mouse away moves the piece instead.
+                self._click_end = picked
+                self._press_at = event.position()
                 self._drag_from = from_scene(scene_pos)
                 self._dragged = False
                 return
         super().mousePressEvent(event)
+
+    def _make_active(self, end: tuple[str, int]) -> None:
+        self.active = end
+        self._last_placed = None
+        self._update_connectors()
+
+    def mouseDoubleClickEvent(self, event) -> None:
+        if event.button() == Qt.LeftButton:
+            item = self.track_item_at(event.position().toPoint())
+            if item is not None:
+                self.select_connected(item.piece)
+                return
+        super().mouseDoubleClickEvent(event)
 
     def mouseMoveEvent(self, event) -> None:
         scene_pos = self.mapToScene(event.position().toPoint())
@@ -469,6 +505,9 @@ class LayoutCanvas(QGraphicsView):
             self.verticalScrollBar().setValue(self.verticalScrollBar().value() - int(delta.y()))
             return
         if self._drag_from is not None:
+            if not self._dragged and (event.position() - self._press_at).manhattanLength() \
+                    < QApplication.startDragDistance():
+                return  # a click with a shaky hand isn't a move
             step = Transform(here[0] - self._drag_from[0], here[1] - self._drag_from[1], 0.0)
             self._drag_from = here
             pieces = self.selected_pieces()
@@ -490,6 +529,8 @@ class LayoutCanvas(QGraphicsView):
         if self._drag_from is not None:
             self._drag_from = None
             self._connectors.set_snap_target(None)
+            if not self._dragged and self._click_end is not None:
+                self._make_active(self._click_end)
             if self._dragged:
                 pieces = self.selected_pieces()
                 snap = self.layout_model.snap_transform(pieces, SNAP_PIXELS / (self.transform().m11() or 1.0))

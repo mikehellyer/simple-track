@@ -114,6 +114,7 @@ class MainWindow(QMainWindow):
         self._action(edit_menu, "Rotate selection (R)", lambda: self.canvas.rotate_selected())
         self._action(edit_menu, "&Delete selection (Del)", self.canvas.delete_selected)
         self._action(edit_menu, "Select &all", self.canvas.select_all, QKeySequence.SelectAll)
+        self._action(edit_menu, "Select &connected track", self._select_connected, "Ctrl+Shift+A")
 
         view_menu = self.menuBar().addMenu("&View")
         self._action(view_menu, "Zoom to &fit", self.canvas.zoom_to_fit, "F")
@@ -175,9 +176,15 @@ class MainWindow(QMainWindow):
         if count:
             pieces = self.canvas.selected_pieces()
             label = pieces[0].label if count == 1 else f"{count} pieces"
-            self.statusBar().showMessage(f"{label} selected — drag to move, R to rotate, Del to delete")
+            self.statusBar().showMessage(f"{label} selected — drag to move or join onto other track, "
+                                         "R to rotate, Del to delete; double-click selects all joined track")
         else:
             self.statusBar().clearMessage()
+
+    def _select_connected(self) -> None:
+        for piece in self.canvas.selected_pieces():
+            self.canvas.select_connected(piece)
+            return
 
     def _add_piece(self, library_id: str, code: str) -> None:
         self.canvas.place(library_id, code)

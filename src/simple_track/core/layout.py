@@ -178,6 +178,21 @@ class Layout:
                 free.append((piece, i, pose))
         return free
 
+    def connected(self, start: Piece) -> list[Piece]:
+        """The piece and every piece joined to it, directly or through others."""
+        found = {start.id: start}
+        queue = [start]
+        while queue:
+            piece = queue.pop()
+            ends = piece.connectors()
+            for other in self.pieces:
+                if other.id in found:
+                    continue
+                if any(connectors_join(a, b) for a in ends for b in other.connectors()):
+                    found[other.id] = other
+                    queue.append(other)
+        return list(found.values())
+
     def snap_candidate(self, moving: list[Piece], distance_mm: float,
                        angle_degrees: float = SNAP_ANGLE_DEGREES) -> tuple[Transform, Pose] | None:
         """While pieces are dragged: the small move (and turn) that would join
