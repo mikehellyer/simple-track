@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Simple-Track
+Comment=Model railway layout designer
+Exec=/opt/simple-track/Simple-Track
+Icon=simple-track
+Terminal=false
+Categories=Graphics;Utility;

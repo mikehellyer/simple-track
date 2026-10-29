@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simple-track"
+version = "0.1.0"
+description = "Model railway layout designer: Peco and Hornby track in OO and N, and AnyRail import"
+authors = [{ name = "Mike Hellyer" }]
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = [
+    "PySide6",
+    "platformdirs",
+    "certifi",
+]
+
+[project.scripts]
+simple-track = "simple_track.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"simple_track.gui" = ["resources/*.png"]
+"simple_track.core" = ["libraries/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]

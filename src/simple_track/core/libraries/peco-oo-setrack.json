@@ -1,0 +1,991 @@
+{
+ "id": "peco-oo-setrack",
+ "name": "Peco Setrack (OO/HO, code 100)",
+ "manufacturer": "Peco",
+ "scale": "OO",
+ "gauge_mm": 16.5,
+ "sleeper_mm": 28,
+ "source": "Geometry from XTrackCAD parameter file HO-Peco-Code100Setrack.xtp",
+ "pieces": [
+  {
+   "code": "ST-200",
+   "name": "Setrack Straight standard",
+   "section": "Straight",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     168.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     168.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-201",
+   "name": "Setrack Straight double",
+   "section": "Straight",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     335.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     335.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-202",
+   "name": "Setrack Straight half",
+   "section": "Straight",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     79.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     79.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-203",
+   "name": "Setrack Straight Quart",
+   "section": "Straight",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     41.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     41.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-204",
+   "name": "Setrack Straight long",
+   "section": "Straight",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     670.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     670.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-205",
+   "name": "Setrack straight isolation",
+   "section": "Straight",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     168.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     168.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-220",
+   "name": "Setrack Curve no1 Std",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     141.976,
+     28.241,
+     22.5
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     371.0,
+     371.0,
+     270.0,
+     22.5
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-221",
+   "name": "Setrack Curve no1 Dbl",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     262.337,
+     108.663,
+     45.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     371.0,
+     371.0,
+     270.0,
+     45.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-222",
+   "name": "Setrack Curve no1 half",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     72.379,
+     7.129,
+     11.25
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     371.0,
+     371.0,
+     270.0,
+     11.25
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-225",
+   "name": "Setrack curve no2 Std",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     167.615,
+     33.341,
+     22.5
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     438.0,
+     438.0,
+     270.0,
+     22.5
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-226",
+   "name": "Setrack curve no2 dbl",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     309.713,
+     128.287,
+     45.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     438.0,
+     438.0,
+     270.0,
+     45.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-227",
+   "name": "Setrack curve no2 half",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     85.45,
+     8.416,
+     11.25
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     438.0,
+     438.0,
+     270.0,
+     11.25
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-230",
+   "name": "Setrack curve no3 Std",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     193.255,
+     38.441,
+     22.5
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     505.0,
+     505.0,
+     270.0,
+     22.5
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-231",
+   "name": "Setrack curve no3 dbl",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     357.089,
+     147.911,
+     45.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     505.0,
+     505.0,
+     270.0,
+     45.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-235",
+   "name": "Setrack curve no4 Std",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     218.704,
+     43.503,
+     22.5
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     571.5,
+     571.5,
+     270.0,
+     22.5
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-238",
+   "name": "Setrack Special Curve",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     167.7,
+     16.517,
+     11.25
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     859.6,
+     859.6,
+     270.0,
+     11.25
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "ST-240",
+   "name": "Setrack No.2 Radius RH Turnout, Insulfrog",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     168.0,
+     0.0,
+     0.0
+    ],
+    [
+     167.615,
+     -33.341,
+     337.5
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     16.501,
+     0.0
+    ],
+    [
+     "S",
+     16.501,
+     0.0,
+     168.0,
+     0.0
+    ],
+    [
+     "A",
+     16.499,
+     -355.048,
+     355.048,
+     67.5,
+     22.5
+    ],
+    [
+     "S",
+     152.372,
+     -27.027,
+     167.615,
+     -33.341
+    ]
+   ],
+   "routes": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2,
+     3
+    ]
+   ]
+  },
+  {
+   "code": "ST-241",
+   "name": "Setrack No.2 Radius LH Turnout, Insulfrog",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     168.0,
+     0.0,
+     0.0
+    ],
+    [
+     167.615,
+     33.341,
+     22.5
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     16.501,
+     0.0
+    ],
+    [
+     "S",
+     16.501,
+     0.0,
+     168.0,
+     0.0
+    ],
+    [
+     "A",
+     16.501,
+     355.048,
+     355.048,
+     270.0,
+     22.5
+    ],
+    [
+     "S",
+     152.372,
+     27.027,
+     167.615,
+     33.341
+    ]
+   ],
+   "routes": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2,
+     3
+    ]
+   ]
+  },
+  {
+   "code": "ST-242",
+   "name": "Setrack Curved Double Radius RH Turnout(Obsolete), Insulfrog",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     201.115,
+     -33.341,
+     337.5
+    ],
+    [
+     206.117,
+     -62.525,
+     326.25
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     33.5,
+     0.0
+    ],
+    [
+     "A",
+     33.5,
+     -438.0,
+     438.0,
+     67.5,
+     22.5
+    ],
+    [
+     "A",
+     0.0,
+     -371.0,
+     371.0,
+     56.25,
+     33.75
+    ]
+   ],
+   "routes": [
+    [
+     0,
+     1
+    ],
+    [
+     2
+    ]
+   ]
+  },
+  {
+   "code": "ST-243",
+   "name": "Setrack Curved Double Radius LH Turnout(Obsolete), Insulfrog",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     201.115,
+     33.341,
+     22.5
+    ],
+    [
+     206.117,
+     62.525,
+     33.75
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     33.5,
+     0.0
+    ],
+    [
+     "A",
+     33.5,
+     438.0,
+     438.0,
+     270.0,
+     22.5
+    ],
+    [
+     "A",
+     0.0,
+     371.0,
+     371.0,
+     270.0,
+     33.75
+    ]
+   ],
+   "routes": [
+    [
+     0,
+     1
+    ],
+    [
+     2
+    ]
+   ]
+  },
+  {
+   "code": "ST-244",
+   "name": "Setrack Curved Double Radius RH Turnout, Insulfrog",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     234.615,
+     -33.341,
+     337.5
+    ],
+    [
+     243.34,
+     -73.816,
+     326.25
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     67.0,
+     0.0
+    ],
+    [
+     "A",
+     67.0,
+     -438.0,
+     438.0,
+     67.5,
+     22.5
+    ],
+    [
+     "A",
+     0.0,
+     -438.0,
+     438.0,
+     56.25,
+     33.75
+    ]
+   ],
+   "routes": [
+    [
+     0,
+     1
+    ],
+    [
+     2
+    ]
+   ]
+  },
+  {
+   "code": "ST-245",
+   "name": "Setrack Curved Double Radius LH Turnout, Insulfrog",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     234.615,
+     33.341,
+     22.5
+    ],
+    [
+     243.34,
+     73.816,
+     33.75
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     67.0,
+     0.0
+    ],
+    [
+     "A",
+     67.0,
+     438.0,
+     438.0,
+     270.0,
+     22.5
+    ],
+    [
+     "A",
+     0.0,
+     438.0,
+     438.0,
+     270.0,
+     33.75
+    ]
+   ],
+   "routes": [
+    [
+     0,
+     1
+    ],
+    [
+     2
+    ]
+   ]
+  },
+  {
+   "code": "ST-247",
+   "name": "Setrack Medium Radius Y Turnout, Insulfrog",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     170.0,
+     16.517,
+     11.25
+    ],
+    [
+     170.0,
+     -16.517,
+     348.75
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     18.802,
+     0.0
+    ],
+    [
+     "A",
+     18.803,
+     692.065,
+     692.065,
+     270.0,
+     11.25
+    ],
+    [
+     "S",
+     153.819,
+     13.298,
+     170.0,
+     16.517
+    ],
+    [
+     "A",
+     18.799,
+     -692.065,
+     692.065,
+     78.75,
+     11.25
+    ],
+    [
+     "S",
+     153.819,
+     -13.298,
+     170.0,
+     -16.517
+    ]
+   ],
+   "routes": [
+    [
+     0,
+     1,
+     2
+    ],
+    [
+     0,
+     3,
+     4
+    ]
+   ]
+  },
+  {
+   "code": "ST-250",
+   "name": "Setrack Medium Diamond Crossing, Insulfrog",
+   "section": "Crossing",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     170.0,
+     0.0,
+     0.0
+    ],
+    [
+     6.47,
+     32.528,
+     157.5
+    ],
+    [
+     163.53,
+     -32.528,
+     337.5
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     170.0,
+     0.0
+    ],
+    [
+     "S",
+     6.47,
+     32.528,
+     163.53,
+     -32.528
+    ]
+   ],
+   "routes": [
+    [
+     0,
+     1
+    ]
+   ]
+  }
+ ]
+}
