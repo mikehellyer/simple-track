@@ -102,7 +102,7 @@ class MainWindow(QMainWindow):
         self._action(file_menu, "&Save", self._save, QKeySequence.Save)
         self._action(file_menu, "Save &as…", self._save_as, QKeySequence.SaveAs)
         file_menu.addSeparator()
-        self._action(file_menu, "&Import AnyRail layout…", self._import_anyrail, "Ctrl+I")
+        self._action(file_menu, "&Import…", self._import_layout, "Ctrl+I")
         file_menu.addSeparator()
         self._action(file_menu, "&Quit", self.close, QKeySequence.Quit)
 
@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
         if not self._confirm_discard():
             return
         name, _ = QFileDialog.getOpenFileName(self, "Open layout", self._folder(),
-                                              f"Simple-Track layouts (*{FILE_SUFFIX});;AnyRail layouts (*.any)")
+                                              f"Simple-Track layouts (*{FILE_SUFFIX});;Other layouts (*.any)")
         if name:
             self.open_path(Path(name))
 
@@ -246,10 +246,10 @@ class MainWindow(QMainWindow):
         self._store.update(last_folder=str(path.parent))
         return self._save()
 
-    def _import_anyrail(self) -> None:
+    def _import_layout(self) -> None:
         if not self._confirm_discard():
             return
-        name, _ = QFileDialog.getOpenFileName(self, "Import AnyRail layout", self._folder(), "AnyRail layouts (*.any)")
+        name, _ = QFileDialog.getOpenFileName(self, "Import", self._folder(), "Layouts (*.any)")
         if name:
             self._import_path(Path(name))
 
@@ -257,7 +257,7 @@ class MainWindow(QMainWindow):
         try:
             layout = import_any(path)
         except (OSError, AnyRailError) as error:
-            QMessageBox.warning(self, "Import AnyRail layout", f"Couldn't import {path.name}:\n{error}")
+            QMessageBox.warning(self, "Import", f"Couldn't import {path.name}:\n{error}")
             return
         self._store.update(last_folder=str(path.parent))
         self._set_layout(layout, None)
@@ -265,9 +265,9 @@ class MainWindow(QMainWindow):
         self._after_edit()
         notes = "\n".join(f"• {note}" for note in layout.notes)
         QMessageBox.information(
-            self, "Import AnyRail layout",
+            self, "Import",
             f"Imported {len(layout.pieces)} pieces from {path.name}.\n\n"
-            "Imported track keeps AnyRail's shapes (shown in grey); it can be moved, rotated "
+            "Imported track keeps its original shapes (shown in grey); it can be moved, rotated "
             "and deleted, and new track can be joined onto it." + (f"\n\n{notes}" if notes else ""))
 
     # --- about & updates

@@ -272,11 +272,11 @@ def _end_poses(line: list[Point]) -> list[Pose]:
 
 def read_any(data: bytes, name: str = "Imported layout") -> Layout:
     if b"serialization::archive" not in data[:40] or b"AnyRail" not in data[:80]:
-        raise AnyRailError("not an AnyRail layout file")
+        raise AnyRailError("not a layout file Simple-Track can import")
     strings = _strings(data)
     connectors, libraries = _find_connectors(data, strings)
     if not connectors:
-        raise AnyRailError("couldn't find any track in this AnyRail file")
+        raise AnyRailError("couldn't find any track in this file")
 
     class_id = Counter(c.class_id for c in connectors).most_common(1)[0][0]
     by_id = {c.object_id: c for c in connectors if c.class_id == class_id}
