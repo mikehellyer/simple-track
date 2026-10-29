@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simple-track"
-version = "0.1.2"
+version = "0.1.3"
 description = "Model railway layout designer: Peco and Hornby track in OO and N"
 authors = [{ name = "Mike Hellyer" }]
 license = "GPL-2.0-or-later"
