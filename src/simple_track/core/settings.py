@@ -14,6 +14,7 @@ class Settings:
     library: str = "peco-oo-setrack"  # the library shown in the parts bin
     last_folder: str = ""  # where layouts were last opened or saved
     show_connectors: bool = True
+    unit: str = "mm"  # for baseboard sizes: mm, cm, m, in or ft
 
 
 def default_path() -> Path:

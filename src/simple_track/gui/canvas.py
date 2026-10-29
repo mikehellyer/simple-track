@@ -9,15 +9,20 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QPointF, QRectF, Qt, Signal
-from PySide6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPainterPathStroker, QPen
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPainterPath, QPainterPathStroker, QPen
 from PySide6.QtWidgets import QApplication, QGraphicsItem, QGraphicsScene, QGraphicsView
 
 from simple_track.core.geometry import Point, Pose, Transform, offset_polyline
 from simple_track.core.layout import ImportedPiece, Layout, Piece, PlacedPiece
 from simple_track.core.library import find_piece
+from simple_track.core.units import describe
 from simple_track.gui.library_panel import decode_piece
 
 BOARD = QColor("#e9efe4")
+FLOOR = QColor("#d5d8d2")  # around the baseboard, once there is one
+BASEBOARD = QColor("#efe5cf")
+BASEBOARD_EDGE = QColor("#8f7650")
+DIMENSION_TEXT = QColor("#5e4b2e")
 GRID_MINOR = QColor("#dde5d6")
 GRID_MAJOR = QColor("#c7d3be")
 SLEEPER = QColor("#8a7a68")
@@ -182,6 +187,7 @@ class LayoutCanvas(QGraphicsView):
         self._press_at = QPointF()
         self._click_end: tuple[str, int] | None = None  # a free end pressed on, made active if it's just a click
         self._ghost: TrackItem | None = None  # the piece being dragged in from the library
+        self.unit = "mm"  # for the baseboard's dimensions
         # A bound method, not a lambda: Qt drops it when the canvas goes, so a
         # selection change during teardown can't reach a deleted view.
         self.scene().selectionChanged.connect(self._on_scene_selection)
@@ -210,6 +216,7 @@ class LayoutCanvas(QGraphicsView):
             item.setSelected(piece.id in selected)
             self._items[piece.id] = item
         self._update_connectors()
+        self.viewport().update()  # the baseboard is drawn behind the scene, not as an item
 
     def _update_connectors(self) -> None:
         free = self.layout_model.free_connectors()
@@ -425,8 +432,19 @@ class LayoutCanvas(QGraphicsView):
     def wheelEvent(self, event) -> None:
         self.zoom(1.2 if event.angleDelta().y() > 0 else 1 / 1.2)
 
+    def baseboard_rect(self) -> QRectF | None:
+        board = self.layout_model.baseboard
+        if board is None:
+            return None
+        return QRectF(0.0, -board.depth_mm, board.width_mm, board.depth_mm)  # scene y runs down
+
     def drawBackground(self, painter: QPainter, rect: QRectF) -> None:
-        painter.fillRect(rect, BOARD)
+        board = self.baseboard_rect()
+        if board is None:
+            painter.fillRect(rect, BOARD)
+        else:
+            painter.fillRect(rect, FLOOR)
+            painter.fillRect(board, BASEBOARD)
         scale = self.transform().m11()
         for step, colour in ((100.0, GRID_MINOR), (1000.0, GRID_MAJOR)):
             if step * scale < 8:
@@ -440,6 +458,34 @@ class LayoutCanvas(QGraphicsView):
             while y < rect.bottom():
                 painter.drawLine(QPointF(rect.left(), y), QPointF(rect.right(), y))
                 y += step
+
+    def drawForeground(self, painter: QPainter, rect: QRectF) -> None:
+        board = self.baseboard_rect()
+        if board is None:
+            return
+        painter.setPen(QPen(BASEBOARD_EDGE, 2.0 / (self.transform().m11() or 1.0)))
+        painter.setBrush(Qt.NoBrush)
+        painter.drawRect(board)
+        # The dimensions, at a fixed size on screen: width under the board,
+        # depth up its left side.
+        layout = self.layout_model.baseboard
+        bottom_left = self.mapFromScene(board.bottomLeft())
+        bottom_right = self.mapFromScene(board.bottomRight())
+        top_left = self.mapFromScene(board.topLeft())
+        painter.save()
+        painter.resetTransform()
+        font = QFont(painter.font())
+        font.setPointSizeF(9.5)
+        painter.setFont(font)
+        painter.setPen(DIMENSION_TEXT)
+        width_text = describe(layout.width_mm, self.unit)
+        depth_text = describe(layout.depth_mm, self.unit)
+        painter.drawText(QRectF(bottom_left.x(), bottom_left.y() + 4, bottom_right.x() - bottom_left.x(), 18),
+                         Qt.AlignHCenter | Qt.AlignTop, width_text)
+        painter.translate(top_left.x() - 6, (top_left.y() + bottom_left.y()) / 2)
+        painter.rotate(-90)
+        painter.drawText(QRectF(-150, -18, 300, 18), Qt.AlignHCenter | Qt.AlignBottom, depth_text)
+        painter.restore()
 
     # --- mouse
 

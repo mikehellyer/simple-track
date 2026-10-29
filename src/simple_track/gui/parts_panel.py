@@ -4,6 +4,7 @@ from __future__ import annotations
 from PySide6.QtWidgets import QHeaderView, QLabel, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget
 
 from simple_track.core.layout import Layout
+from simple_track.core.units import describe
 
 
 class PartsPanel(QWidget):
@@ -23,7 +24,7 @@ class PartsPanel(QWidget):
         self._total = QLabel()
         layout.addWidget(self._total)
 
-    def show_layout(self, model: Layout) -> None:
+    def show_layout(self, model: Layout, unit: str = "mm") -> None:
         self._tree.clear()
         groups: dict[str, QTreeWidgetItem] = {}
         total = 0
@@ -37,4 +38,8 @@ class PartsPanel(QWidget):
             group.addChild(QTreeWidgetItem([code, name, str(count)]))
             total += count
         self._tree.expandAll()
-        self._total.setText(f"{total} piece{'s' if total != 1 else ''}")
+        text = f"{total} piece{'s' if total != 1 else ''}"
+        if model.baseboard is not None:
+            board = model.baseboard
+            text += f" · baseboard {describe(board.width_mm, unit)} × {describe(board.depth_mm, unit)}"
+        self._total.setText(text)

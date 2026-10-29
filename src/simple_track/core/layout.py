@@ -125,6 +125,24 @@ class ImportedPiece:
 Piece = PlacedPiece | ImportedPiece
 
 
+@dataclass
+class Baseboard:
+    """A rectangular baseboard, its bottom-left corner at the origin."""
+    width_mm: float
+    depth_mm: float
+
+    def to_json(self) -> dict:
+        return {"width_mm": round(self.width_mm, 1), "depth_mm": round(self.depth_mm, 1)}
+
+    @classmethod
+    def from_json(cls, data) -> "Baseboard | None":
+        try:
+            width, depth = float(data["width_mm"]), float(data["depth_mm"])
+        except (TypeError, KeyError, ValueError):
+            return None
+        return cls(width, depth) if width > 0 and depth > 0 else None
+
+
 def connectors_join(a: Pose, b: Pose) -> bool:
     return (math.hypot(a.x - b.x, a.y - b.y) <= JOIN_DISTANCE_MM
             and angle_difference(a.heading, b.heading + 180.0) <= JOIN_ANGLE_DEGREES)
@@ -135,6 +153,7 @@ class Layout:
     name: str = "Untitled layout"
     pieces: list[Piece] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)  # e.g. what an import couldn't bring across
+    baseboard: Baseboard | None = None
 
     # --- editing
 
@@ -259,7 +278,11 @@ class Layout:
         return sorted((lib, code, name, n) for (lib, code, name), n in counts.items())
 
     def bounds(self) -> tuple[float, float, float, float] | None:
+        """The area the track (and the baseboard, if there is one) covers."""
         xs, ys = [], []
+        if self.baseboard is not None:
+            xs += [0.0, self.baseboard.width_mm]
+            ys += [0.0, self.baseboard.depth_mm]
         for piece in self.pieces:
             for line in piece.polylines():
                 for x, y in line:
@@ -272,8 +295,11 @@ class Layout:
     # --- files
 
     def to_json(self) -> dict:
-        return {"format": FILE_FORMAT, "version": FILE_VERSION, "name": self.name,
+        data = {"format": FILE_FORMAT, "version": FILE_VERSION, "name": self.name,
                 "notes": self.notes, "pieces": [p.to_json() for p in self.pieces]}
+        if self.baseboard is not None:
+            data["baseboard"] = self.baseboard.to_json()
+        return data
 
     def save(self, path: Path) -> None:
         path.write_text(json.dumps(self.to_json(), indent=1), encoding="utf-8")
@@ -284,7 +310,8 @@ class Layout:
             raise ValueError("not a Simple-Track layout")
         if data.get("version", 0) > FILE_VERSION:
             raise ValueError("this layout was saved by a newer Simple-Track — please update")
-        layout = cls(name=data.get("name", "Untitled layout"), notes=list(data.get("notes", [])))
+        layout = cls(name=data.get("name", "Untitled layout"), notes=list(data.get("notes", [])),
+                     baseboard=Baseboard.from_json(data.get("baseboard")))
         for raw in data.get("pieces", []):
             if raw.get("type") == "placed":
                 layout.add(PlacedPiece(raw["library"], raw["code"],

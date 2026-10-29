@@ -22,6 +22,11 @@ in that script and re-run it.
 
 ## Using it
 
+- **Baseboard:** Layout ▸ Baseboard size… (Ctrl+B) sets the width and depth.
+  - Sizes can be in mm, cm, metres, inches or feet. Presets include 4 × 2 ft,
+    6 × 4 ft, 8 × 4 ft and 1200 × 600 mm.
+  - The board is drawn with its size along the edges, and the parts list shows it too.
+  - Untick *Baseboard* to go back to an open board.
 - **Drag track in:** drag a piece from the library onto the layout.
   - Over empty board, it goes down where you drop it.
   - Bring one of its ends near a free end, or drop it right on a free end, and it

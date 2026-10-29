@@ -17,7 +17,9 @@ from simple_track.core.diagnostics import log_dir
 from simple_track.core.layout import FILE_SUFFIX, Layout
 from simple_track.core.self_update import download_asset, find_asset_for_this_platform, launch_installer
 from simple_track.core.settings import SettingsStore
+from simple_track.core.units import UNITS
 from simple_track.core.updater import API_TIMEOUT_SECONDS, check_for_update
+from simple_track.gui.baseboard_dialog import BaseboardDialog
 from simple_track.gui.canvas import LayoutCanvas
 from simple_track.gui.library_panel import LibraryPanel
 from simple_track.gui.parts_panel import PartsPanel
@@ -53,6 +55,7 @@ class MainWindow(QMainWindow):
         self._update_banner.update_clicked.connect(self._start_update)
         layout.addWidget(self._update_banner)
         self.canvas = LayoutCanvas()
+        self.canvas.unit = self._store.settings.unit if self._store.settings.unit in UNITS else "mm"
         layout.addWidget(self.canvas, stretch=1)
         self.setCentralWidget(central)
 
@@ -81,7 +84,8 @@ class MainWindow(QMainWindow):
 
         self._build_menus()
         self._set_layout(Layout(), None)
-        self.statusBar().showMessage("Pick a track library on the left, then drag a piece onto the layout (or double-click it).")
+        self.statusBar().showMessage("Set the baseboard size from Layout ▸ Baseboard size, then drag track "
+                                     "from the library on the left onto it.")
         if check_updates:
             QTimer.singleShot(1500, self._check_for_updates)
 
@@ -115,6 +119,9 @@ class MainWindow(QMainWindow):
         self._action(edit_menu, "&Delete selection (Del)", self.canvas.delete_selected)
         self._action(edit_menu, "Select &all", self.canvas.select_all, QKeySequence.SelectAll)
         self._action(edit_menu, "Select &connected track", self._select_connected, "Ctrl+Shift+A")
+
+        layout_menu = self.menuBar().addMenu("&Layout")
+        self._action(layout_menu, "&Baseboard size…", self._edit_baseboard, "Ctrl+B")
 
         view_menu = self.menuBar().addMenu("&View")
         self._action(view_menu, "Zoom to &fit", self.canvas.zoom_to_fit, "F")
@@ -166,7 +173,7 @@ class MainWindow(QMainWindow):
             self._restore(self._redo.pop())
 
     def _after_edit(self) -> None:
-        self.parts_panel.show_layout(self.canvas.layout_model)
+        self.parts_panel.show_layout(self.canvas.layout_model, self.canvas.unit)
         self._undo_action.setEnabled(bool(self._undo))
         self._redo_action.setEnabled(bool(self._redo))
         name = self._path.stem if self._path else self.canvas.layout_model.name
@@ -180,6 +187,24 @@ class MainWindow(QMainWindow):
                                          "R to rotate, Del to delete; double-click selects all joined track")
         else:
             self.statusBar().clearMessage()
+
+    def _edit_baseboard(self) -> None:
+        model = self.canvas.layout_model
+        dialog = BaseboardDialog(model.baseboard, self.canvas.unit, self)
+        if not dialog.exec():
+            return
+        self.canvas.unit = dialog.unit()
+        self._store.update(unit=dialog.unit())
+        board = dialog.baseboard()
+        if board != model.baseboard:
+            model.baseboard = board
+            self.canvas.refresh()
+            if board is not None and not model.pieces:
+                self.canvas.zoom_to_fit()
+            self.canvas.changed.emit()  # so it can be undone
+        else:
+            self._after_edit()  # the units may have changed
+            self.canvas.viewport().update()
 
     def _select_connected(self) -> None:
         for piece in self.canvas.selected_pieces():
