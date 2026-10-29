@@ -22,14 +22,19 @@ in that script and re-run it.
 
 ## Using it
 
-- **Add track:** pick a library on the left, then double-click a piece. It joins on at
-  the **orange** end, and its far end becomes the new orange end, so you can keep
+- **Drag track in:** drag a piece from the library onto the layout.
+  - Over empty board, it goes down where you drop it.
+  - Bring one of its ends near a free end, or drop it right on a free end, and it
+    turns and snaps on. A **green** ring shows the end it will join.
+- **Add track by double-clicking:** double-click a piece and it joins on at the
+  **orange** end. Its far end becomes the new orange end, so you can keep
   double-clicking to build a run.
 - **Tab** turns round the piece you just added. Use it to make a curve bend the other way
   or to put a point in backwards.
 - **Click a red end** (a free connector) to build from there instead.
-- **Drag** pieces to move them. When a free end comes close to another one, it snaps
-  into place.
+- **Drag** pieces already on the layout to move them. When a free end comes close to
+  another one (up to 45° out of line), a green ring shows where it will join, and it
+  snaps on when you let go.
 - **R** / **Shift+R** rotates the selection 15°, **Del** deletes it, and Ctrl-click
   selects more than one piece.
 - **Wheel** zooms, **right- or middle-drag** pans, and **F** zooms to fit.

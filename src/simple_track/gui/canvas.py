@@ -14,6 +14,8 @@ from PySide6.QtWidgets import QGraphicsItem, QGraphicsScene, QGraphicsView
 
 from simple_track.core.geometry import Point, Pose, Transform, offset_polyline
 from simple_track.core.layout import ImportedPiece, Layout, Piece, PlacedPiece
+from simple_track.core.library import find_piece
+from simple_track.gui.library_panel import decode_piece
 
 BOARD = QColor("#e9efe4")
 GRID_MINOR = QColor("#dde5d6")
@@ -24,8 +26,11 @@ SLEEPER_SELECTED = QColor("#3d7fd9")
 RAIL = QColor("#2e3236")
 FREE_END = QColor("#d64545")
 ACTIVE_END = QColor("#f08c1a")
+SNAP_TARGET = QColor("#2e9e4f")
+GHOST_OPACITY = 0.55
 
 SNAP_PIXELS = 18  # how close (on screen) a dragged piece's end must come to snap
+DROP_SNAP_PIXELS = 30  # a piece dropped from the library reaches a little further
 CONNECTOR_PICK_PIXELS = 10
 ROTATE_STEP_DEGREES = 15.0
 
@@ -99,7 +104,13 @@ class ConnectorLayer(QGraphicsItem):
         self.setZValue(10)
         self.free: list[Pose] = []
         self.active: Pose | None = None
+        self.snap_target: Pose | None = None  # where a dragged piece will join, if it's let go now
         self._bounds = QRectF()
+
+    def set_snap_target(self, target: Pose | None) -> None:
+        if target != self.snap_target:
+            self.snap_target = target
+            self.update()
 
     def set_connectors(self, free: list[Pose], active: Pose | None) -> None:
         self.prepareGeometryChange()
@@ -130,6 +141,10 @@ class ConnectorLayer(QGraphicsItem):
             h = math.radians(self.active.heading)
             tip = to_scene((self.active.x + math.cos(h) * 28 / scale, self.active.y + math.sin(h) * 28 / scale))
             painter.drawLine(centre, tip)
+        if self.snap_target is not None:
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(QPen(SNAP_TARGET, 3.0 / scale))
+            painter.drawEllipse(to_scene((self.snap_target.x, self.snap_target.y)), radius * 3, radius * 3)
 
 
 class LayoutCanvas(QGraphicsView):
@@ -146,6 +161,7 @@ class LayoutCanvas(QGraphicsView):
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
         self.setDragMode(QGraphicsView.RubberBandDrag)
         self.setMouseTracking(True)
+        self.setAcceptDrops(True)
         self.scale(0.5, 0.5)
 
         self.layout_model = Layout()
@@ -157,7 +173,13 @@ class LayoutCanvas(QGraphicsView):
         self._drag_from: Point | None = None
         self._dragged = False
         self._pan_from: QPointF | None = None
-        self.scene().selectionChanged.connect(lambda: self.selection_changed.emit(len(self.selected_pieces())))
+        self._ghost: TrackItem | None = None  # the piece being dragged in from the library
+        # A bound method, not a lambda: Qt drops it when the canvas goes, so a
+        # selection change during teardown can't reach a deleted view.
+        self.scene().selectionChanged.connect(self._on_scene_selection)
+
+    def _on_scene_selection(self) -> None:
+        self.selection_changed.emit(len(self.selected_pieces()))
 
     # --- the model
 
@@ -274,6 +296,93 @@ class LayoutCanvas(QGraphicsView):
         for item in self._items.values():
             item.setSelected(True)
 
+    # --- dragging pieces in from the library
+
+    def preview_piece(self, library_id: str, code: str, scene_pos: QPointF) -> Pose | None:
+        """Show the piece being dragged in, centred on the mouse — or, near a
+        free end, joined onto it. Returns the end it would join, if any."""
+        definition = find_piece(library_id, code)
+        if definition is None:
+            self.clear_preview()
+            return None
+        x, y = from_scene(scene_pos)
+        cx, cy = definition.centre()
+        transform = Transform(x - cx, y - cy, 0.0)
+        target = None
+        reach = DROP_SNAP_PIXELS / (self.transform().m11() or 1.0)
+        snap = self.layout_model.snap_placement(library_id, code, transform, reach)
+        if snap is None:
+            # Dropped right onto a free end: join the piece's first end there.
+            near = min(((math.hypot(pose.x - x, pose.y - y), pose)
+                        for _, _, pose in self.layout_model.free_connectors()), default=None, key=lambda t: t[0])
+            if near is not None and near[0] <= reach:
+                snap = (Transform.aligning(definition.connectors[0], near[1]), near[1])
+        if snap is not None:
+            transform, target = snap
+        if self._ghost is None or not isinstance(self._ghost.piece, PlacedPiece) \
+                or (self._ghost.piece.library_id, self._ghost.piece.code) != (library_id, code):
+            self.clear_preview()
+            self._ghost = TrackItem(PlacedPiece(library_id, code, transform))
+            self._ghost.setOpacity(GHOST_OPACITY)
+            self._ghost.setFlag(QGraphicsItem.ItemIsSelectable, False)
+            self._ghost.setZValue(5)
+            self.scene().addItem(self._ghost)
+        else:
+            self._ghost.piece.transform = transform
+            self._ghost.rebuild()
+        self._connectors.set_snap_target(target)
+        return target
+
+    def clear_preview(self) -> None:
+        if self._ghost is not None:
+            self.scene().removeItem(self._ghost)
+            self._ghost = None
+        self._connectors.set_snap_target(None)
+
+    def drop_piece(self, library_id: str, code: str, scene_pos: QPointF) -> PlacedPiece | None:
+        """Put the piece down where preview_piece() showed it."""
+        self.preview_piece(library_id, code, scene_pos)
+        if self._ghost is None:
+            return None
+        piece = PlacedPiece(library_id, code, self._ghost.piece.transform)
+        self.clear_preview()
+        self.layout_model.add(piece)
+        self._last_placed = None
+        free_here = [i for p, i, _ in self.layout_model.free_connectors() if p is piece]
+        self.active = (piece.id, free_here[-1]) if free_here else None
+        self.refresh()
+        self.scene().clearSelection()
+        self._items[piece.id].setSelected(True)
+        self.changed.emit()
+        self.setFocus()
+        return piece
+
+    def dragEnterEvent(self, event) -> None:
+        if decode_piece(event.mimeData()) is not None:
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event) -> None:
+        piece = decode_piece(event.mimeData())
+        if piece is None:
+            super().dragMoveEvent(event)
+            return
+        self.preview_piece(*piece, self.mapToScene(event.position().toPoint()))
+        event.acceptProposedAction()
+
+    def dragLeaveEvent(self, event) -> None:
+        self.clear_preview()
+        super().dragLeaveEvent(event)
+
+    def dropEvent(self, event) -> None:
+        piece = decode_piece(event.mimeData())
+        if piece is None:
+            super().dropEvent(event)
+            return
+        self.drop_piece(*piece, self.mapToScene(event.position().toPoint()))
+        event.acceptProposedAction()
+
     # --- view
 
     def zoom_to_fit(self) -> None:
@@ -362,11 +471,14 @@ class LayoutCanvas(QGraphicsView):
         if self._drag_from is not None:
             step = Transform(here[0] - self._drag_from[0], here[1] - self._drag_from[1], 0.0)
             self._drag_from = here
-            for piece in self.selected_pieces():
+            pieces = self.selected_pieces()
+            for piece in pieces:
                 piece.moved(step)
                 self._items[piece.id].rebuild()
             self._dragged = True
             self._update_connectors()
+            snap = self.layout_model.snap_candidate(pieces, SNAP_PIXELS / (self.transform().m11() or 1.0))
+            self._connectors.set_snap_target(snap[1] if snap else None)
             return
         super().mouseMoveEvent(event)
 
@@ -377,6 +489,7 @@ class LayoutCanvas(QGraphicsView):
             return
         if self._drag_from is not None:
             self._drag_from = None
+            self._connectors.set_snap_target(None)
             if self._dragged:
                 pieces = self.selected_pieces()
                 snap = self.layout_model.snap_transform(pieces, SNAP_PIXELS / (self.transform().m11() or 1.0))

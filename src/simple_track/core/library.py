@@ -42,6 +42,13 @@ class TrackPiece:
     def is_point(self) -> bool:
         return len(self.connectors) > 2
 
+    def centre(self) -> tuple[float, float]:
+        """Middle of the piece's bounding box, in its own frame — where the
+        mouse holds it while it's dragged in."""
+        points = [p for s in self.segments for p in s.points()]
+        xs, ys = [p[0] for p in points], [p[1] for p in points]
+        return ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2)
+
     def length(self) -> float:
         """Length of the first route (the straight road through a point)."""
         route = self.routes[0] if self.routes else range(len(self.segments))

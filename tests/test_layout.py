@@ -82,3 +82,35 @@ def test_load_rejects_other_files(tmp_path):
     path.write_text('{"format": "something-else"}')
     with pytest.raises(ValueError):
         Layout.load(path)
+
+
+def test_a_dropped_piece_snaps_on_and_turns_to_fit():
+    layout = Layout()
+    first = layout.place("hornby-oo", "R600")
+    end = first.connectors()[1]
+    # dropped near the free end, at a silly angle
+    dropped_at = Transform(end.x + 8, end.y - 5, 130)
+    snap = layout.snap_placement("hornby-oo", "R604", dropped_at, distance_mm=30)
+    assert snap is not None
+    transform, target = snap
+    assert (target.x, target.y) == pytest.approx((end.x, end.y))
+    layout.add(PlacedPiece("hornby-oo", "R604", transform))
+    assert len(layout.free_connectors()) == 2  # joined: only the two outer ends are free
+
+
+def test_a_dropped_piece_far_away_stays_where_it_is():
+    layout = Layout()
+    layout.place("hornby-oo", "R600")
+    assert layout.snap_placement("hornby-oo", "R604", Transform(2000, 2000, 0), distance_mm=30) is None
+
+
+def test_snap_candidate_names_the_end_it_joins():
+    layout = Layout()
+    first = layout.place("peco-n-setrack", "ST1")
+    second = layout.place("peco-n-setrack", "ST1", first.connectors()[1])
+    end = first.connectors()[1]
+    second.moved(Transform.rotation_about((end.x, end.y), 30).then(Transform(3, 3, 0)))  # 30° out, a bit off
+    transform, target = layout.snap_candidate([second], distance_mm=20)
+    assert (target.x, target.y) == pytest.approx((first.connectors()[1].x, first.connectors()[1].y))
+    second.moved(transform)
+    assert len(layout.free_connectors()) == 2

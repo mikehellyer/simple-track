@@ -28,6 +28,8 @@ FILE_SUFFIX = ".strack"
 # How close two connectors must be to count as joined.
 JOIN_DISTANCE_MM = 1.0
 JOIN_ANGLE_DEGREES = 2.0
+# How far out of line a dragged piece's end may be and still snap on (it's turned to fit).
+SNAP_ANGLE_DEGREES = 45.0
 
 DEFAULT_GAUGE_MM = 16.5
 
@@ -176,11 +178,12 @@ class Layout:
                 free.append((piece, i, pose))
         return free
 
-    def snap_transform(self, moving: list[Piece], distance_mm: float,
-                       angle_degrees: float = 25.0) -> Transform | None:
-        """After pieces are dragged: the small move that joins one of their
-        free connectors exactly onto a nearby free connector of the rest of
-        the layout, or None if nothing is close enough."""
+    def snap_candidate(self, moving: list[Piece], distance_mm: float,
+                       angle_degrees: float = SNAP_ANGLE_DEGREES) -> tuple[Transform, Pose] | None:
+        """While pieces are dragged: the small move (and turn) that would join
+        one of their free connectors exactly onto a nearby free connector of
+        the rest of the layout, and that connector. None if nothing is close
+        enough."""
         moving_ids = {p.id for p in moving}
         free = self.free_connectors()
         ours = [pose for piece, _, pose in free if piece.id in moving_ids]
@@ -197,7 +200,32 @@ class Layout:
             return None
         _, mine, other = best
         turn = Transform.rotation_about((mine.x, mine.y), other.heading + 180.0 - mine.heading)
-        return turn.then(Transform(other.x - mine.x, other.y - mine.y, 0.0))
+        return turn.then(Transform(other.x - mine.x, other.y - mine.y, 0.0)), other
+
+    def snap_transform(self, moving: list[Piece], distance_mm: float,
+                       angle_degrees: float = SNAP_ANGLE_DEGREES) -> Transform | None:
+        candidate = self.snap_candidate(moving, distance_mm, angle_degrees)
+        return candidate[0] if candidate else None
+
+    def snap_placement(self, library_id: str, code: str, transform: Transform,
+                       distance_mm: float) -> tuple[Transform, Pose] | None:
+        """For a piece being dropped in from the library: if any of its ends
+        comes within `distance_mm` of a free end of the layout, the placement
+        that joins it there (turned to fit, whatever its angle), and that end."""
+        definition = find_piece(library_id, code)
+        if definition is None:
+            return None
+        best = None
+        for local in definition.connectors:
+            here = local.transformed(transform)
+            for _, _, target in self.free_connectors():
+                gap = math.hypot(here.x - target.x, here.y - target.y)
+                if gap <= distance_mm and (best is None or gap < best[0]):
+                    best = (gap, local, target)
+        if best is None:
+            return None
+        _, local, target = best
+        return Transform.aligning(local, target), target
 
     # --- reports
 

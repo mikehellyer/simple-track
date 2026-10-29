@@ -1,13 +1,41 @@
 """The parts bin: pick a track library, then a piece to add."""
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QMimeData, Qt, Signal
 from PySide6.QtWidgets import (QComboBox, QLabel, QLineEdit, QPushButton, QTreeWidget, QTreeWidgetItem,
                                QVBoxLayout, QWidget)
 
 from simple_track.core.library import Library, builtin_libraries
 
 PIECE_ROLE = Qt.UserRole
+# What a piece dragged out of the list carries: "<library id>\t<code>".
+PIECE_MIME = "application/x-simple-track-piece"
+
+
+def encode_piece(library_id: str, code: str) -> QMimeData:
+    data = QMimeData()
+    data.setData(PIECE_MIME, f"{library_id}\t{code}".encode("utf-8"))
+    return data
+
+
+def decode_piece(data: QMimeData) -> tuple[str, str] | None:
+    if not data.hasFormat(PIECE_MIME):
+        return None
+    library_id, _, code = bytes(data.data(PIECE_MIME)).decode("utf-8").partition("\t")
+    return (library_id, code) if code else None
+
+
+class _PieceTree(QTreeWidget):
+    """The list of pieces; any piece can be dragged out onto the layout."""
+
+    library_id = ""
+
+    def mimeTypes(self) -> list[str]:
+        return [PIECE_MIME]
+
+    def mimeData(self, items) -> QMimeData:
+        code = items[0].data(0, PIECE_ROLE) if items else None
+        return encode_piece(self.library_id, code) if code else QMimeData()
 
 
 class LibraryPanel(QWidget):
@@ -30,7 +58,9 @@ class LibraryPanel(QWidget):
         self._filter.setClearButtonEnabled(True)
         layout.addWidget(self._filter)
 
-        self._tree = QTreeWidget()
+        self._tree = _PieceTree()
+        self._tree.setDragEnabled(True)
+        self._tree.setDragDropMode(QTreeWidget.DragOnly)
         self._tree.setHeaderLabels(["Part", "Description"])
         self._tree.setRootIsDecorated(True)
         self._tree.setColumnWidth(0, 110)
@@ -40,8 +70,8 @@ class LibraryPanel(QWidget):
         self._add.setEnabled(False)
         layout.addWidget(self._add)
 
-        hint = QLabel("Double-click a piece to add it at the orange end. Tab turns the "
-                      "piece just added round; click a red end to build from there.")
+        hint = QLabel("Drag a piece onto the layout — near a free end it snaps on. Or "
+                      "double-click to add it at the orange end; Tab turns it round.")
         hint.setWordWrap(True)
         hint.setStyleSheet("color: palette(placeholder-text); font-size: 11px;")
         layout.addWidget(hint)
@@ -66,6 +96,7 @@ class LibraryPanel(QWidget):
     def _populate(self) -> None:
         self._tree.clear()
         library = self.library()
+        self._tree.library_id = library.id
         words = self._filter.text().lower().split()
         sections: dict[str, QTreeWidgetItem] = {}
         for piece in library.pieces:
@@ -75,7 +106,7 @@ class LibraryPanel(QWidget):
             section = sections.get(piece.section)
             if section is None:
                 section = QTreeWidgetItem([piece.section, ""])
-                section.setFlags(section.flags() & ~Qt.ItemIsSelectable)
+                section.setFlags(section.flags() & ~Qt.ItemIsSelectable & ~Qt.ItemIsDragEnabled)
                 self._tree.addTopLevelItem(section)
                 section.setFirstColumnSpanned(True)
                 sections[piece.section] = section

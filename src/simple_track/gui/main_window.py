@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
 
         self._build_menus()
         self._set_layout(Layout(), None)
-        self.statusBar().showMessage("Pick a track library on the left, then double-click a piece to start.")
+        self.statusBar().showMessage("Pick a track library on the left, then drag a piece onto the layout (or double-click it).")
         if check_updates:
             QTimer.singleShot(1500, self._check_for_updates)
 
