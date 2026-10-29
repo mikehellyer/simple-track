@@ -44,7 +44,7 @@ Depends: libegl1, libxkbcommon0, libxcb-cursor0, libfontconfig1, libdbus-1-3
 Maintainer: Mike Hellyer
 Description: Model railway layout designer
  Plan model railway layouts with Peco and Hornby sectional track, in OO
- and N gauge, and open AnyRail (.any) layouts.
+ and N gauge, with a parts list of everything used.
 EOF
 
 

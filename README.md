@@ -1,8 +1,7 @@
 # Simple-Track
 
-A model railway layout designer for Linux, macOS and Windows, in the spirit of AnyRail.
-Plan layouts with Peco and Hornby sectional track in OO and N gauge, get a parts list, and
-bring across layouts drawn in AnyRail.
+A model railway layout designer for Linux, macOS and Windows. Plan layouts with Peco and
+Hornby sectional track in OO and N gauge, and get a parts list of everything used.
 
 ## Track libraries
 
@@ -36,10 +35,6 @@ in that script and re-run it.
 - **Wheel** zooms, **right- or middle-drag** pans, and **F** zooms to fit.
 - **Undo/redo:** Ctrl+Z / Ctrl+Shift+Z.
 - **File:** layouts save as `.strack` files (JSON). Open them from File ▸ Open.
-- **AnyRail:** File ▸ Import AnyRail layout… (or open a `.any` directly).
-  - Imported track keeps AnyRail's shapes and is drawn in grey. It can be moved,
-    rotated and deleted, and new track can be joined onto it.
-  - Background pictures, text labels and the baseboard outline aren't imported yet.
 
 ## Running from source
 
@@ -49,20 +44,14 @@ venv/bin/pip install -r requirements-dev.txt -e .
 venv/bin/simple-track
 ```
 
-Tests: `venv/bin/pytest`. The AnyRail tests use the sample layouts in
-`~/Projects/AnyRail7_Original_Install/` when they're there (or wherever
-`SIMPLE_TRACK_ANY_SAMPLES` points), and skip otherwise.
+Tests: `venv/bin/pytest`. A few tests need sample layout files that aren't kept in the
+repo; they skip when those aren't on the machine.
 
 ## Releases
 
 Pushing a `v*` tag builds the Windows installer, the macOS `.dmg` and the Linux `.deb` on
 GitHub Actions, then attaches them to a GitHub Release. The app checks that release feed
 and offers updates; it never installs one without being asked.
-
-## How the AnyRail import works
-
-`docs/anyrail-format.md` has what has been worked out of AnyRail's file format.
-`research/` holds the throwaway scripts used to work it out.
 
 ## Licence
 
