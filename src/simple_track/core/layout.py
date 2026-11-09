@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from simple_track.core.geometry import (Point, Pose, Segment, Transform, angle_difference,
-                                         transform_segment)
+                                         normalise_angle, transform_segment)
 from simple_track.core.library import TrackPiece, find_library, find_piece
 
 FILE_FORMAT = "simple-track"
@@ -125,6 +125,44 @@ class ImportedPiece:
 Piece = PlacedPiece | ImportedPiece
 
 
+HEADING_SIZE_MM = 60.0
+LABEL_SIZE_MM = 35.0
+
+
+@dataclass
+class TextLabel:
+    """Words on the layout — a station name, a heading. Sized in mm on the
+    board, like the track, so it zooms with everything else."""
+    text: str
+    x: float
+    y: float
+    size_mm: float = LABEL_SIZE_MM
+    bold: bool = False
+    rotation: float = 0.0  # degrees anticlockwise
+    id: str = field(default_factory=_new_id)
+
+    def moved(self, transform: Transform) -> None:
+        self.x, self.y = transform.apply((self.x, self.y))
+        self.rotation = normalise_angle(self.rotation + transform.rotation)
+
+    def to_json(self) -> dict:
+        return {"id": self.id, "text": self.text, "x": round(self.x, 2), "y": round(self.y, 2),
+                "size_mm": round(self.size_mm, 2), "bold": self.bold, "rotation": round(self.rotation, 3)}
+
+    @classmethod
+    def from_json(cls, data: dict) -> "TextLabel | None":
+        text = str(data.get("text", "")).strip()
+        try:
+            size = float(data.get("size_mm", LABEL_SIZE_MM))
+            label = cls(text, float(data["x"]), float(data["y"]), size if size > 0 else LABEL_SIZE_MM,
+                        bool(data.get("bold", False)), float(data.get("rotation", 0.0)))
+        except (KeyError, TypeError, ValueError):
+            return None
+        if data.get("id"):
+            label.id = str(data["id"])
+        return label if text else None
+
+
 @dataclass
 class Baseboard:
     """A rectangular baseboard, its bottom-left corner at the origin."""
@@ -154,6 +192,7 @@ class Layout:
     pieces: list[Piece] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)  # e.g. what an import couldn't bring across
     baseboard: Baseboard | None = None
+    labels: list[TextLabel] = field(default_factory=list)
 
     # --- editing
 
@@ -161,8 +200,13 @@ class Layout:
         self.pieces.append(piece)
         return piece
 
-    def remove(self, piece_id: str) -> None:
-        self.pieces = [p for p in self.pieces if p.id != piece_id]
+    def remove(self, item_id: str) -> None:
+        """Take a piece, or a label, off the layout."""
+        self.pieces = [p for p in self.pieces if p.id != item_id]
+        self.labels = [label for label in self.labels if label.id != item_id]
+
+    def label(self, label_id: str) -> TextLabel | None:
+        return next((label for label in self.labels if label.id == label_id), None)
 
     def get(self, piece_id: str) -> Piece | None:
         for piece in self.pieces:
@@ -283,6 +327,9 @@ class Layout:
         if self.baseboard is not None:
             xs += [0.0, self.baseboard.width_mm]
             ys += [0.0, self.baseboard.depth_mm]
+        for label in self.labels:  # roughly: a label's middle, give or take its height
+            xs += [label.x - label.size_mm, label.x + label.size_mm]
+            ys += [label.y - label.size_mm, label.y + label.size_mm]
         for piece in self.pieces:
             for line in piece.polylines():
                 for x, y in line:
@@ -299,6 +346,8 @@ class Layout:
                 "notes": self.notes, "pieces": [p.to_json() for p in self.pieces]}
         if self.baseboard is not None:
             data["baseboard"] = self.baseboard.to_json()
+        if self.labels:
+            data["labels"] = [label.to_json() for label in self.labels]
         return data
 
     def save(self, path: Path) -> None:
@@ -312,6 +361,10 @@ class Layout:
             raise ValueError("this layout was saved by a newer Simple-Track — please update")
         layout = cls(name=data.get("name", "Untitled layout"), notes=list(data.get("notes", [])),
                      baseboard=Baseboard.from_json(data.get("baseboard")))
+        for raw in data.get("labels", []):
+            label = TextLabel.from_json(raw) if isinstance(raw, dict) else None
+            if label is not None:
+                layout.labels.append(label)
         for raw in data.get("pieces", []):
             if raw.get("type") == "placed":
                 layout.add(PlacedPiece(raw["library"], raw["code"],

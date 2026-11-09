@@ -29,6 +29,11 @@ in that script and re-run it.
     6 × 4 ft, 8 × 4 ft and 1200 × 600 mm.
   - The board is drawn with its size along the edges, and the parts list shows it too.
   - Untick *Baseboard* to go back to an open board.
+- **Text:** Layout ▸ Add heading… (Ctrl+Shift+T) or Add label… (Ctrl+T) puts text in the
+  middle of the view. Headings are 60 mm bold and labels 35 mm, or pick any size.
+  - Labels move, rotate (R) and delete (Del) like track. A label selected along with
+    some track moves with it when the track snaps on.
+  - Double-click a label, or select it and press Ctrl+E, to change its text or size.
 - **Drag track in:** drag a piece from the library onto the layout.
   - Over empty board, it goes down where you drop it.
   - Bring one of its ends near a free end, or drop it right on a free end, and it

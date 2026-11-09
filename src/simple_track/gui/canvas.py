@@ -13,7 +13,7 @@ from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPainterPath, QPainte
 from PySide6.QtWidgets import QApplication, QGraphicsItem, QGraphicsScene, QGraphicsView
 
 from simple_track.core.geometry import Point, Pose, Transform, offset_polyline
-from simple_track.core.layout import ImportedPiece, Layout, Piece, PlacedPiece
+from simple_track.core.layout import ImportedPiece, Layout, Piece, PlacedPiece, TextLabel
 from simple_track.core.library import find_piece
 from simple_track.core.units import describe
 from simple_track.gui.library_panel import decode_piece
@@ -32,6 +32,8 @@ RAIL = QColor("#2e3236")
 FREE_END = QColor("#d64545")
 ACTIVE_END = QColor("#f08c1a")
 SNAP_TARGET = QColor("#2e9e4f")
+LABEL_TEXT = QColor("#2f2a24")
+LABEL_HIGHLIGHT = QColor(61, 127, 217, 45)
 GHOST_OPACITY = 0.55
 
 SNAP_PIXELS = 18  # how close (on screen) a dragged piece's end must come to snap
@@ -157,10 +159,54 @@ class ConnectorLayer(QGraphicsItem):
             painter.drawEllipse(to_scene((self.snap_target.x, self.snap_target.y)), radius * 3, radius * 3)
 
 
+class LabelItem(QGraphicsItem):
+    """A text label or heading, centred on its position. Its font size is
+    in scene units (mm), so it scales with the zoom like the track."""
+
+    def __init__(self, label: TextLabel):
+        super().__init__()
+        self.label = label
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.setZValue(3)  # over the track, under the end markers
+        self.rebuild()
+
+    def rebuild(self) -> None:
+        self.prepareGeometryChange()
+        font = QFont()
+        font.setPixelSize(max(1, round(self.label.size_mm)))
+        font.setBold(self.label.bold)
+        path = QPainterPath()
+        path.addText(0, 0, font, self.label.text)
+        box = path.boundingRect()
+        path.translate(-box.center())  # centred on the label's position
+        self._path = path
+        self._bounds = path.boundingRect().adjusted(-4, -4, 4, 4)
+        self.setPos(to_scene((self.label.x, self.label.y)))
+        self.setRotation(-self.label.rotation)  # scene y runs down, so turns go the other way
+
+    def boundingRect(self) -> QRectF:
+        return self._bounds
+
+    def shape(self) -> QPainterPath:
+        shape = QPainterPath()
+        shape.addRect(self._bounds)  # the whole box, so the gaps between letters are clickable
+        return shape
+
+    def paint(self, painter: QPainter, option, widget=None) -> None:
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.setPen(Qt.NoPen)
+        if self.isSelected():
+            painter.setBrush(LABEL_HIGHLIGHT)
+            painter.drawRect(self._bounds)
+        painter.setBrush(SLEEPER_SELECTED if self.isSelected() else LABEL_TEXT)
+        painter.drawPath(self._path)
+
+
 class LayoutCanvas(QGraphicsView):
     changed = Signal()  # the layout was edited
     cursor_moved = Signal(float, float)  # model mm
     selection_changed = Signal(int)
+    edit_label_requested = Signal(str)  # label id: a label was double-clicked
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -175,7 +221,7 @@ class LayoutCanvas(QGraphicsView):
         self.scale(0.5, 0.5)
 
         self.layout_model = Layout()
-        self._items: dict[str, TrackItem] = {}
+        self._items: dict[str, TrackItem | LabelItem] = {}
         self._connectors = ConnectorLayer()
         self._connectors.setAcceptedMouseButtons(Qt.NoButton)
         self.scene().addItem(self._connectors)
@@ -193,7 +239,7 @@ class LayoutCanvas(QGraphicsView):
         self.scene().selectionChanged.connect(self._on_scene_selection)
 
     def _on_scene_selection(self) -> None:
-        self.selection_changed.emit(len(self.selected_pieces()))
+        self.selection_changed.emit(len(self.selected_pieces()) + len(self.selected_labels()))
 
     # --- the model
 
@@ -206,7 +252,7 @@ class LayoutCanvas(QGraphicsView):
             self.zoom_to_fit()
 
     def refresh(self) -> None:
-        selected = {p.id for p in self.selected_pieces()}
+        selected = {p.id for p in self.selected_pieces()} | {label.id for label in self.selected_labels()}
         for item in self._items.values():
             self.scene().removeItem(item)
         self._items = {}
@@ -215,6 +261,11 @@ class LayoutCanvas(QGraphicsView):
             self.scene().addItem(item)
             item.setSelected(piece.id in selected)
             self._items[piece.id] = item
+        for label in self.layout_model.labels:
+            item = LabelItem(label)
+            self.scene().addItem(item)
+            item.setSelected(label.id in selected)
+            self._items[label.id] = item
         self._update_connectors()
         self.viewport().update()  # the baseboard is drawn behind the scene, not as an item
 
@@ -243,6 +294,13 @@ class LayoutCanvas(QGraphicsView):
                 return item
         return None
 
+    def item_at(self, view_pos) -> "TrackItem | LabelItem | None":
+        """The piece of track or label under a point of the view, if any."""
+        for item in self.items(view_pos):
+            if isinstance(item, (TrackItem, LabelItem)) and item is not self._ghost:
+                return item
+        return None
+
     def select_connected(self, piece: Piece) -> None:
         """Select the piece and everything joined to it."""
         joined = {p.id for p in self.layout_model.connected(piece)}
@@ -251,6 +309,27 @@ class LayoutCanvas(QGraphicsView):
 
     def selected_pieces(self) -> list[Piece]:
         return [item.piece for item in self.scene().selectedItems() if isinstance(item, TrackItem)]
+
+    def selected_labels(self) -> list[TextLabel]:
+        return [item.label for item in self.scene().selectedItems() if isinstance(item, LabelItem)]
+
+    def add_label(self, label: TextLabel) -> TextLabel:
+        """Put a label on the layout, in the middle of the view, selected."""
+        label.x, label.y = from_scene(self.mapToScene(self.viewport().rect().center()))
+        self.layout_model.labels.append(label)
+        self.refresh()
+        self.scene().clearSelection()
+        self._items[label.id].setSelected(True)
+        self.changed.emit()
+        self.setFocus()
+        return label
+
+    def label_changed(self, label: TextLabel) -> None:
+        """A label's text or style was edited."""
+        item = self._items.get(label.id)
+        if isinstance(item, LabelItem):
+            item.rebuild()
+        self.changed.emit()
 
     # --- editing
 
@@ -293,20 +372,20 @@ class LayoutCanvas(QGraphicsView):
         return True
 
     def delete_selected(self) -> None:
-        pieces = self.selected_pieces()
-        if not pieces:
+        doomed = [p.id for p in self.selected_pieces()] + [label.id for label in self.selected_labels()]
+        if not doomed:
             return
-        for piece in pieces:
-            self.layout_model.remove(piece.id)
+        for item_id in doomed:
+            self.layout_model.remove(item_id)
         self._last_placed = None
         self.refresh()
         self.changed.emit()
 
     def rotate_selected(self, degrees: float = ROTATE_STEP_DEGREES) -> None:
-        pieces = self.selected_pieces()
-        if not pieces:
+        pieces, labels = self.selected_pieces(), self.selected_labels()
+        if not pieces and not labels:
             return
-        xs, ys = [], []
+        xs, ys = [label.x for label in labels], [label.y for label in labels]
         for piece in pieces:
             for line in piece.polylines():
                 for x, y in line:
@@ -314,8 +393,8 @@ class LayoutCanvas(QGraphicsView):
                     ys.append(y)
         centre = ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2)
         turn = Transform.rotation_about(centre, degrees)
-        for piece in pieces:
-            piece.moved(turn)
+        for item in pieces + labels:
+            item.moved(turn)
         self._last_placed = None
         self.refresh()
         self.changed.emit()
@@ -507,7 +586,7 @@ class LayoutCanvas(QGraphicsView):
             return
         if event.button() == Qt.LeftButton:
             picked = self._pick_connector(scene_pos)
-            item = self.track_item_at(event.position().toPoint())
+            item = self.item_at(event.position().toPoint())
             if picked is not None and item is None:
                 self._make_active(picked)
                 return
@@ -520,7 +599,7 @@ class LayoutCanvas(QGraphicsView):
                     item.setSelected(True)
                 # Near a free end, a click (no drag) makes it the orange end;
                 # pulling the mouse away moves the piece instead.
-                self._click_end = picked
+                self._click_end = picked if isinstance(item, TrackItem) else None
                 self._press_at = event.position()
                 self._drag_from = from_scene(scene_pos)
                 self._dragged = False
@@ -534,8 +613,11 @@ class LayoutCanvas(QGraphicsView):
 
     def mouseDoubleClickEvent(self, event) -> None:
         if event.button() == Qt.LeftButton:
-            item = self.track_item_at(event.position().toPoint())
-            if item is not None:
+            item = self.item_at(event.position().toPoint())
+            if isinstance(item, LabelItem):
+                self.edit_label_requested.emit(item.label.id)
+                return
+            if isinstance(item, TrackItem):
                 self.select_connected(item.piece)
                 return
         super().mouseDoubleClickEvent(event)
@@ -557,9 +639,9 @@ class LayoutCanvas(QGraphicsView):
             step = Transform(here[0] - self._drag_from[0], here[1] - self._drag_from[1], 0.0)
             self._drag_from = here
             pieces = self.selected_pieces()
-            for piece in pieces:
-                piece.moved(step)
-                self._items[piece.id].rebuild()
+            for item in pieces + self.selected_labels():
+                item.moved(step)
+                self._items[item.id].rebuild()
             self._dragged = True
             self._update_connectors()
             snap = self.layout_model.snap_candidate(pieces, SNAP_PIXELS / (self.transform().m11() or 1.0))
@@ -581,8 +663,8 @@ class LayoutCanvas(QGraphicsView):
                 pieces = self.selected_pieces()
                 snap = self.layout_model.snap_transform(pieces, SNAP_PIXELS / (self.transform().m11() or 1.0))
                 if snap is not None:
-                    for piece in pieces:
-                        piece.moved(snap)
+                    for item in pieces + self.selected_labels():  # labels ride along with their track
+                        item.moved(snap)
                 self._last_placed = None
                 self.refresh()
                 self.changed.emit()

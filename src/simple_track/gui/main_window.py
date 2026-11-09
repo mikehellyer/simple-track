@@ -21,6 +21,7 @@ from simple_track.core.units import UNITS
 from simple_track.core.updater import API_TIMEOUT_SECONDS, check_for_update
 from simple_track.gui.baseboard_dialog import BaseboardDialog
 from simple_track.gui.canvas import LayoutCanvas
+from simple_track.gui.label_dialog import LabelDialog
 from simple_track.gui.library_panel import LibraryPanel
 from simple_track.gui.parts_panel import PartsPanel
 from simple_track.gui.update_banner import UpdateBanner
@@ -81,6 +82,7 @@ class MainWindow(QMainWindow):
         self.canvas.cursor_moved.connect(lambda x, y: self._position.setText(f"x {x:.0f} mm   y {y:.0f} mm"))
         self.canvas.changed.connect(self._on_changed)
         self.canvas.selection_changed.connect(self._on_selection)
+        self.canvas.edit_label_requested.connect(self._edit_label)
 
         self._build_menus()
         self._set_layout(Layout(), None)
@@ -122,6 +124,10 @@ class MainWindow(QMainWindow):
 
         layout_menu = self.menuBar().addMenu("&Layout")
         self._action(layout_menu, "&Baseboard size…", self._edit_baseboard, "Ctrl+B")
+        layout_menu.addSeparator()
+        self._action(layout_menu, "Add &heading…", lambda: self._add_label(heading=True), "Ctrl+Shift+T")
+        self._action(layout_menu, "Add &label…", lambda: self._add_label(heading=False), "Ctrl+T")
+        self._action(layout_menu, "&Edit text…", self._edit_selected_label, "Ctrl+E")
 
         view_menu = self.menuBar().addMenu("&View")
         self._action(view_menu, "Zoom to &fit", self.canvas.zoom_to_fit, "F")
@@ -180,13 +186,39 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"{'• ' if self._dirty else ''}{name} — Simple-Track")
 
     def _on_selection(self, count: int) -> None:
+        texts = self.canvas.selected_labels()
+        if count == 1 and texts:
+            self.statusBar().showMessage(f"“{texts[0].text}” selected — drag to move, R to rotate, "
+                                         "double-click or Ctrl+E to edit, Del to delete")
+            return
         if count:
             pieces = self.canvas.selected_pieces()
-            label = pieces[0].label if count == 1 else f"{count} pieces"
+            label = pieces[0].label if count == 1 else f"{count} items"
             self.statusBar().showMessage(f"{label} selected — drag to move or join onto other track, "
                                          "R to rotate, Del to delete; double-click selects all joined track")
         else:
             self.statusBar().clearMessage()
+
+    def _add_label(self, heading: bool) -> None:
+        dialog = LabelDialog(heading=heading, parent=self)
+        if dialog.exec():
+            self.canvas.add_label(dialog.new_label())
+
+    def _edit_selected_label(self) -> None:
+        labels = self.canvas.selected_labels()
+        if len(labels) == 1:
+            self._edit_label(labels[0].id)
+        else:
+            self.statusBar().showMessage("Select one label or heading to edit its text.", 4000)
+
+    def _edit_label(self, label_id: str) -> None:
+        label = self.canvas.layout_model.label(label_id)
+        if label is None:
+            return
+        dialog = LabelDialog(label, parent=self)
+        if dialog.exec():
+            dialog.apply_to(label)
+            self.canvas.label_changed(label)
 
     def _edit_baseboard(self) -> None:
         model = self.canvas.layout_model
