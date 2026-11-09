@@ -309,7 +309,7 @@ class MainWindow(QMainWindow):
             self,
             "About Simple-Track",
             f"<b>Simple-Track</b> v{__version__}<br><br>"
-            "A model railway layout designer: Peco and Hornby track in OO and N.<br><br>"
+            "A model railway layout designer: Peco, Hornby and Kato track in OO, N and 009.<br><br>"
             "Track geometry from the parameter files of "
             "<a href='https://sourceforge.net/projects/xtrkcad-fork/'>XTrackCAD</a>.<br><br>"
             "By Mike Hellyer, built with Claude Code.",

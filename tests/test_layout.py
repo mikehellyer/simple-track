@@ -114,3 +114,15 @@ def test_snap_candidate_names_the_end_it_joins():
     assert (target.x, target.y) == pytest.approx((first.connectors()[1].x, first.connectors()[1].y))
     second.moved(transform)
     assert len(layout.free_connectors()) == 2
+
+
+def test_eight_kato_r249_curves_make_a_circle():
+    layout = Layout()
+    chain(layout, "kato-n-unitrack", "20-100", 8)
+    assert layout.free_connectors() == []
+
+
+def test_kato_009_curves_make_a_circle():
+    layout = Layout()
+    chain(layout, "kato-oo9-unitrack", "52-220", 8)
+    assert layout.free_connectors() == []

@@ -1,0 +1,324 @@
+{
+ "id": "kato-oo9-unitrack",
+ "name": "Kato Unitrack narrow gauge (009)",
+ "manufacturer": "Kato",
+ "scale": "OO9",
+ "gauge_mm": 9.0,
+ "sleeper_mm": 13,
+ "source": "Geometry from XTrackCAD parameter file OO9-Kato.xtp",
+ "pieces": [
+  {
+   "code": "52-140",
+   "name": "Straight 62mm",
+   "section": "Straight",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     62.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     62.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "52-120",
+   "name": "Straight 124mm",
+   "section": "Straight",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     124.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     124.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "52-220",
+   "name": "Curved 183mm 45d",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     129.401,
+     -53.599,
+     315.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -183.0,
+     183.0,
+     45.0,
+     45.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "52-250",
+   "name": "Curved 481mm 15d",
+   "section": "Curve",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     124.492,
+     -16.39,
+     345.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -481.0,
+     481.0,
+     75.0,
+     15.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "52-141",
+   "name": "Feeder 62mm",
+   "section": "Misc Tracks",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     62.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     62.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "52-300",
+   "name": "Turnout 4-L",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     126.0,
+     0.0,
+     0.0
+    ],
+    [
+     124.0,
+     16.325,
+     15.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     126.0,
+     0.0
+    ],
+    [
+     "A",
+     0.0,
+     479.095,
+     479.095,
+     270.0,
+     15.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ],
+    [
+     1
+    ]
+   ]
+  },
+  {
+   "code": "S60L",
+   "name": "S60L{w/4L Turnout}",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     60.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     60.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "52-301",
+   "name": "Turnout 4-R",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     126.0,
+     0.0,
+     0.0
+    ],
+    [
+     124.0,
+     -16.325,
+     345.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     126.0,
+     0.0
+    ],
+    [
+     "A",
+     0.0,
+     -479.095,
+     479.095,
+     75.0,
+     15.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ],
+    [
+     1
+    ]
+   ]
+  },
+  {
+   "code": "S60R",
+   "name": "S60R{w/4R Turnout}",
+   "section": "Turnouts",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     60.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "segments": [
+    [
+     "S",
+     0.0,
+     0.0,
+     60.0,
+     0.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  }
+ ]
+}

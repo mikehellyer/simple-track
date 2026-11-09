@@ -8,7 +8,9 @@ from simple_track.core.library import builtin_libraries, find_piece
 EXPECTED = {
     "hornby-oo", "peco-oo-setrack", "peco-oo-streamline-100", "peco-oo-bullhead-75",
     "peco-n-setrack", "peco-n-streamline-80", "peco-n-finescale-55",
+    "kato-n-unitrack", "kato-oo9-unitrack",
 }
+GAUGES = {"OO": 16.5, "N": 9.0, "OO9": 9.0}
 
 
 def test_all_libraries_load():
@@ -16,7 +18,7 @@ def test_all_libraries_load():
     assert set(libraries) == EXPECTED
     for lib in libraries.values():
         assert lib.pieces, lib.id
-        assert lib.gauge_mm == (9.0 if lib.scale == "N" else 16.5)
+        assert lib.gauge_mm == GAUGES[lib.scale]
 
 
 def test_every_piece_starts_at_the_origin_facing_left():
@@ -40,6 +42,8 @@ def test_every_connector_is_on_the_end_of_a_segment():
     ("hornby-oo", "R601", 335.0),
     ("peco-oo-setrack", "ST-200", 168.0),
     ("peco-n-setrack", "ST1", 87.0),
+    ("kato-n-unitrack", "20-000", 248.0),
+    ("kato-oo9-unitrack", "52-120", 124.0),
 ])
 def test_known_straights(library, code, length):
     assert find_piece(library, code).length() == pytest.approx(length, abs=0.5)
@@ -50,6 +54,10 @@ def test_known_straights(library, code, length):
     ("hornby-oo", "R606", 438, 22.5),  # 2nd radius
     ("hornby-oo", "R608", 505, 22.5),  # 3rd radius
     ("peco-n-setrack", "ST3", 228, 22.5),
+    ("kato-n-unitrack", "20-100", 249, 45),  # R249
+    ("kato-n-unitrack", "20-170", 216, 45),  # R216
+    ("kato-oo9-unitrack", "52-220", 183, 45),
+    ("kato-oo9-unitrack", "52-250", 481, 15),
 ])
 def test_known_curves(library, code, radius, sweep):
     arc = find_piece(library, code).segments[0]
@@ -63,3 +71,17 @@ def test_points_have_three_ends_and_two_routes():
     assert point.is_point
     assert len(point.connectors) == 3
     assert len(point.routes) == 2
+
+
+def test_a_turntable_has_only_its_rim_ends():
+    from simple_track.core.library import find_piece
+
+    turntable = find_piece("kato-n-unitrack", "20-283")
+    assert len(turntable.connectors) == 36  # its pivot point isn't an end
+
+
+def test_kato_part_numbers_listed_twice_are_both_kept():
+    from simple_track.core.library import find_library
+
+    codes = {p.code for p in find_library("kato-n-unitrack").pieces}
+    assert {"20-320", "20-320 (Crossing 90d w/o S45.5)", "S45.5"} <= codes

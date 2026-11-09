@@ -1,7 +1,7 @@
 # Simple-Track
 
-A model railway layout designer for Linux, macOS and Windows. Plan layouts with Peco and
-Hornby sectional track in OO and N gauge, and get a parts list of everything used.
+A model railway layout designer for Linux, macOS and Windows. Plan layouts with Peco,
+Hornby and Kato sectional track in OO, N and 009, and get a parts list of everything used.
 
 ## Track libraries
 
@@ -14,6 +14,8 @@ Hornby sectional track in OO and N gauge, and get a parts list of everything use
 | N | Peco Setrack (N, code 80) | 21 |
 | N | Peco Streamline (N, code 80) | 15 |
 | N | Peco Finescale (N, code 55) | 19 |
+| N | Kato Unitrack (N) | 120 |
+| OO9 | Kato Unitrack narrow gauge (009) | 9 |
 
 The geometry comes from [XTrackCAD](https://sourceforge.net/projects/xtrkcad-fork/)'s
 parameter files. `tools/xtp_to_library.py` converts them into Simple-Track's own JSON

@@ -27,6 +27,7 @@ INCH = 25.4
 
 OO = {"scale": "OO", "gauge_mm": 16.5, "sleeper_mm": 28}
 N = {"scale": "N", "gauge_mm": 9.0, "sleeper_mm": 15}
+OO9 = {"scale": "OO9", "gauge_mm": 9.0, "sleeper_mm": 13}
 
 LIBRARIES = [
     {"file": "OO-HornbyOO.xtp", "id": "hornby-oo", "name": "Hornby OO", "manufacturer": "Hornby", **OO},
@@ -42,12 +43,16 @@ LIBRARIES = [
      "manufacturer": "Peco", **N},
     {"file": "N-PecoCode55Finescale.xtp", "id": "peco-n-finescale-55", "name": "Peco Finescale (N, code 55)",
      "manufacturer": "Peco", **N},
+    {"file": "N-Kato Track and Structures.xtp", "id": "kato-n-unitrack", "name": "Kato Unitrack (N)",
+     "manufacturer": "Kato", **N},
+    {"file": "OO9-Kato.xtp", "id": "kato-oo9-unitrack", "name": "Kato Unitrack narrow gauge (009)",
+     "manufacturer": "Kato", **OO9},
 ]
 
 # Words dropped from XTrackCAD's section headings: the library name already says them.
 _SECTION_NOISE = re.compile(
     r"\b(peco|hornby|n[- ]scale|ho[- ]scale|oo[- ]scale|ho|oo|n|code\s*\d+|streamline|setrack|finescale|"
-    r"bullhead|scale|track)\b|[-–]", re.I)
+    r"bullhead|scale|track|kato|unitrack|oo9)\b|[-–]", re.I)
 
 
 _DECORATION = {"L", "L3", "A", "A3", "F", "F3", "F4", "Y", "Y3", "Y4", "G", "G3", "B", "B3",
@@ -81,6 +86,8 @@ def parse_xtp(text: str) -> list[dict]:
         elif word == "TURNOUT":
             match = re.match(r'TURNOUT\s+\S+\s+"([^"]*)"', line)
             fields = [f.strip() for f in match.group(1).split("\t")] if match else []
+            if len(fields) >= 3 and not fields[-1]:
+                fields[-1] = fields[-2].split(" (")[0]  # no part number: the piece's short name stands in
             fields = [f for f in fields if f]
             if len(fields) < 2:
                 current = None
@@ -122,6 +129,21 @@ def parse_xtp(text: str) -> list[dict]:
     return pieces
 
 
+def _segment_ends(segment: list) -> list[tuple[float, float]]:
+    if segment[0] == "S":
+        return [(segment[1], segment[2]), (segment[3], segment[4])]
+    _, cx, cy, r, start, sweep = segment
+    return [(cx + r * math.cos(math.radians(a)), cy + r * math.sin(math.radians(a))) for a in (start, start + sweep)]
+
+
+def _real_connectors(piece: dict) -> dict:
+    """Drop "connectors" no track reaches, like a turntable's pivot point,
+    which XTrackCAD lists among its ends."""
+    ends = [e for seg in piece["segments"] for e in _segment_ends(seg)]
+    kept = [c for c in piece["connectors"] if min(math.dist((c[0], c[1]), e) for e in ends) <= 0.5]
+    return {**piece, "connectors": kept} if kept else piece
+
+
 def _normalise(piece: dict) -> dict:
     """Move the piece so its first connector sits at the origin facing -x."""
     x0, y0, h0 = piece["connectors"][0]
@@ -157,12 +179,16 @@ def build(xtp_dir: Path) -> None:
             text = raw.decode("utf-8")
         except UnicodeDecodeError:
             text = raw.decode("latin-1")
-        pieces = [_normalise(p) for p in parse_xtp(text)]
+        pieces = [_normalise(_real_connectors(p)) for p in parse_xtp(text)]
         seen: set[str] = set()
         unique = []
         for piece in pieces:
             if piece["code"] in seen:
-                continue
+                # The same part number twice is one product drawn two ways
+                # (Kato's 20-320 crossing with and without its S45.5).
+                piece["code"] = f"{piece['code']} ({piece['name']})"
+                if piece["code"] in seen:
+                    continue
             seen.add(piece["code"])
             unique.append(piece)
         library = {k: v for k, v in spec.items() if k != "file"}

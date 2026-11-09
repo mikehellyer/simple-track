@@ -43,8 +43,8 @@ Architecture: $ARCH
 Depends: libegl1, libxkbcommon0, libxcb-cursor0, libfontconfig1, libdbus-1-3
 Maintainer: Mike Hellyer
 Description: Model railway layout designer
- Plan model railway layouts with Peco and Hornby sectional track, in OO
- and N gauge, with a parts list of everything used.
+ Plan model railway layouts with Peco, Hornby and Kato sectional track,
+ in OO, N and 009, with a parts list of everything used.
 EOF
 
 
