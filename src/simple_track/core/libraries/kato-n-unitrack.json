@@ -5,7 +5,7 @@
  "scale": "N",
  "gauge_mm": 9.0,
  "sleeper_mm": 15,
- "source": "Geometry from XTrackCAD parameter file N-Kato Track and Structures.xtp",
+ "source": "Geometry from XTrackCAD parameter file N-Kato Track and Structures.xtp; standard curves it lacks added from the Kato catalogue",
  "pieces": [
   {
    "code": "20-000",
@@ -750,6 +750,294 @@
      249.0,
      75.0,
      15.0
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-110",
+   "name": "Curve 11R 282mm 45d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     199.404,
+     -82.596,
+     315.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -282,
+     282,
+     45.0,
+     45
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-111",
+   "name": "Curve 11R 282mm 15d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     72.987,
+     -9.609,
+     345.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -282,
+     282,
+     75.0,
+     15
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-120",
+   "name": "Curve 12.375R 315mm 45d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     222.739,
+     -92.261,
+     315.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -315,
+     315,
+     45.0,
+     45
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-121",
+   "name": "Curve 12.375R 315mm 15d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     81.528,
+     -10.733,
+     345.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -315,
+     315,
+     75.0,
+     15
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-132",
+   "name": "Curve 13.75R 348mm 45d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     246.073,
+     -101.927,
+     315.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -348,
+     348,
+     45.0,
+     45
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-130",
+   "name": "Curve 13.75R 348mm 30d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     174.0,
+     -46.623,
+     330.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -348,
+     348,
+     60.0,
+     30
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-140",
+   "name": "Curve 15R 381mm 30d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     190.5,
+     -51.044,
+     330.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -381,
+     381,
+     60.0,
+     30
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-160",
+   "name": "Curve 19R 481mm 15d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     124.492,
+     -16.39,
+     345.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -481,
+     481,
+     75.0,
+     15
+    ]
+   ],
+   "routes": [
+    [
+     0
+    ]
+   ]
+  },
+  {
+   "code": "20-150",
+   "name": "Curve 28.25R 718mm 15d",
+   "section": "Curved",
+   "connectors": [
+    [
+     0.0,
+     0.0,
+     180.0
+    ],
+    [
+     185.832,
+     -24.465,
+     345.0
+    ]
+   ],
+   "segments": [
+    [
+     "A",
+     0.0,
+     -718,
+     718,
+     75.0,
+     15
     ]
    ],
    "routes": [

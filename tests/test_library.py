@@ -56,6 +56,12 @@ def test_known_straights(library, code, length):
     ("peco-n-setrack", "ST3", 228, 22.5),
     ("kato-n-unitrack", "20-100", 249, 45),  # R249
     ("kato-n-unitrack", "20-170", 216, 45),  # R216
+    ("kato-n-unitrack", "20-110", 282, 45),  # the standard curves above R249,
+    ("kato-n-unitrack", "20-120", 315, 45),  # added because XTrackCAD's file
+    ("kato-n-unitrack", "20-121", 315, 15),  # no longer lists them
+    ("kato-n-unitrack", "20-132", 348, 45),
+    ("kato-n-unitrack", "20-140", 381, 30),
+    ("kato-n-unitrack", "20-150", 718, 15),
     ("kato-oo9-unitrack", "52-220", 183, 45),
     ("kato-oo9-unitrack", "52-250", 481, 15),
 ])
@@ -85,3 +91,10 @@ def test_kato_part_numbers_listed_twice_are_both_kept():
 
     codes = {p.code for p in find_library("kato-n-unitrack").pieces}
     assert {"20-320", "20-320 (Crossing 90d w/o S45.5)", "S45.5"} <= codes
+
+
+def test_added_kato_curve_matches_the_concrete_sleeper_one():
+    plain = find_piece("kato-n-unitrack", "20-120")  # R315 45°, drawn from the catalogue
+    concrete = find_piece("kato-n-unitrack", "20-124")  # R315 45°, from XTrackCAD
+    for a, b in zip(plain.connectors, concrete.connectors):
+        assert (a.x, a.y, a.heading) == pytest.approx((b.x, b.y, b.heading), abs=0.01)

@@ -49,6 +49,47 @@ LIBRARIES = [
      "manufacturer": "Kato", **OO9},
 ]
 
+# Standard pieces the current XTrackCAD files leave out, drawn here from the
+# maker's catalogue: library id -> (code, name, section, radius mm, angle °).
+# Kato's plain-sleeper curves above R249 were in XTrackCAD's 2014 kato-n.xtp
+# but were dropped when it became "N-Kato Track and Structures.xtp" (only
+# the concrete-sleeper versions and viaducts remain there).
+CURVE_SUPPLEMENTS: dict[str, list[tuple[str, str, str, float, float]]] = {
+    "kato-n-unitrack": [
+        ("20-110", "Curve 11R 282mm 45d", "Curved", 282, 45),
+        ("20-111", "Curve 11R 282mm 15d", "Curved", 282, 15),
+        ("20-120", "Curve 12.375R 315mm 45d", "Curved", 315, 45),
+        ("20-121", "Curve 12.375R 315mm 15d", "Curved", 315, 15),
+        ("20-132", "Curve 13.75R 348mm 45d", "Curved", 348, 45),
+        ("20-130", "Curve 13.75R 348mm 30d", "Curved", 348, 30),
+        ("20-140", "Curve 15R 381mm 30d", "Curved", 381, 30),
+        ("20-160", "Curve 19R 481mm 15d", "Curved", 481, 15),
+        ("20-150", "Curve 28.25R 718mm 15d", "Curved", 718, 15),
+    ],
+}
+
+
+def _curve(code: str, name: str, section: str, radius: float, angle: float) -> dict:
+    """A plain curve, laid out like XTrackCAD's: from the origin, bending
+    right, centre at (0, -radius)."""
+    a = math.radians(angle)
+    return {"code": code, "name": name, "section": section,
+            "connectors": [[0.0, 0.0, 180.0],
+                           [_r(radius * math.sin(a)), _r(-radius + radius * math.cos(a)), _r((360.0 - angle) % 360.0)]],
+            "segments": [["A", 0.0, _r(-radius), _r(radius), _r(90.0 - angle), _r(angle)]],
+            "routes": [[0]]}
+
+
+def _add_supplements(library_id: str, pieces: list[dict]) -> list[dict]:
+    """Slot the supplementary curves into their section, after its last piece."""
+    extra = [_curve(*spec) for spec in CURVE_SUPPLEMENTS.get(library_id, [])
+             if spec[0] not in {p["code"] for p in pieces}]
+    for piece in extra:
+        last = max((i for i, p in enumerate(pieces) if p["section"] == piece["section"]), default=len(pieces) - 1)
+        pieces.insert(last + 1, piece)
+    return pieces
+
+
 # Words dropped from XTrackCAD's section headings: the library name already says them.
 _SECTION_NOISE = re.compile(
     r"\b(peco|hornby|n[- ]scale|ho[- ]scale|oo[- ]scale|ho|oo|n|code\s*\d+|streamline|setrack|finescale|"
@@ -193,10 +234,12 @@ def build(xtp_dir: Path) -> None:
             unique.append(piece)
         library = {k: v for k, v in spec.items() if k != "file"}
         library["source"] = f"Geometry from XTrackCAD parameter file {spec['file']}"
-        library["pieces"] = unique
+        if spec["id"] in CURVE_SUPPLEMENTS:
+            library["source"] += "; standard curves it lacks added from the Kato catalogue"
+        library["pieces"] = _add_supplements(spec["id"], unique)
         out = OUT_DIR / f"{spec['id']}.json"
         out.write_text(json.dumps(library, indent=1) + "\n", encoding="utf-8")
-        print(f"{out.name}: {len(unique)} pieces")
+        print(f"{out.name}: {len(library['pieces'])} pieces")
 
 
 if __name__ == "__main__":

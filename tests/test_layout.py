@@ -126,3 +126,10 @@ def test_kato_009_curves_make_a_circle():
     layout = Layout()
     chain(layout, "kato-oo9-unitrack", "52-220", 8)
     assert layout.free_connectors() == []
+
+
+@pytest.mark.parametrize("code, count", [("20-120", 8), ("20-121", 24), ("20-140", 12), ("20-150", 24)])
+def test_added_kato_curves_close_a_circle(code, count):
+    layout = Layout()
+    chain(layout, "kato-n-unitrack", code, count)
+    assert layout.free_connectors() == []
