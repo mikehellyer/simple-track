@@ -181,6 +181,15 @@ class Baseboard:
         return cls(width, depth) if width > 0 and depth > 0 else None
 
 
+def part_row(piece: Piece) -> tuple[str, str, str]:
+    """The parts-list line a piece is counted on: (library name, code, description)."""
+    if isinstance(piece, PlacedPiece):
+        library = find_library(piece.library_id)
+        definition = piece.definition
+        return library.name if library else piece.library_id, piece.code, definition.name if definition else ""
+    return f"Imported ({piece.source_library or 'drawn freehand'})", piece.code, ""
+
+
 def connectors_join(a: Pose, b: Pose) -> bool:
     return (math.hypot(a.x - b.x, a.y - b.y) <= JOIN_DISTANCE_MM
             and angle_difference(a.heading, b.heading + 180.0) <= JOIN_ANGLE_DEGREES)
@@ -309,16 +318,7 @@ class Layout:
 
     def parts_list(self) -> list[tuple[str, str, str, int]]:
         """(library name, code, description, count) for every part used."""
-        counts: Counter = Counter()
-        for piece in self.pieces:
-            if isinstance(piece, PlacedPiece):
-                library = find_library(piece.library_id)
-                definition = piece.definition
-                counts[(library.name if library else piece.library_id, piece.code,
-                        definition.name if definition else "")] += 1
-            else:
-                source = piece.source_library or "drawn freehand"
-                counts[(f"Imported ({source})", piece.code, "")] += 1
+        counts: Counter = Counter(part_row(piece) for piece in self.pieces)
         return sorted((lib, code, name, n) for (lib, code, name), n in counts.items())
 
     def bounds(self) -> tuple[float, float, float, float] | None:

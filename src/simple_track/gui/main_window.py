@@ -180,12 +180,14 @@ class MainWindow(QMainWindow):
 
     def _after_edit(self) -> None:
         self.parts_panel.show_layout(self.canvas.layout_model, self.canvas.unit)
+        self.parts_panel.highlight(self.canvas.selected_pieces())
         self._undo_action.setEnabled(bool(self._undo))
         self._redo_action.setEnabled(bool(self._redo))
         name = self._path.stem if self._path else self.canvas.layout_model.name
         self.setWindowTitle(f"{'• ' if self._dirty else ''}{name} — Simple-Track")
 
     def _on_selection(self, count: int) -> None:
+        self.parts_panel.highlight(self.canvas.selected_pieces())
         texts = self.canvas.selected_labels()
         if count == 1 and texts:
             self.statusBar().showMessage(f"“{texts[0].text}” selected — drag to move, R to rotate, "

@@ -149,3 +149,42 @@ def test_clicking_a_free_end_still_makes_it_the_orange_end(canvas):
         QTest.mouseClick(canvas.viewport(), Qt.LeftButton, Qt.NoModifier, px(canvas, end.x + 4, end.y))
         assert canvas.active == (piece.id, index)
     assert [(round(c.x), round(c.y)) for c in piece.connectors()] == before  # clicks don't move it
+
+
+def test_selecting_track_lights_up_its_lines_in_the_parts_list(canvas):
+    from PySide6.QtCore import Qt
+    from PySide6.QtTest import QTest
+
+    from simple_track.gui.canvas import to_scene
+
+    window = canvas.window()
+    straights = [canvas.drop_piece("hornby-oo", "R600", to_scene((x, 0))) for x in (0, 400, 800)]
+    curve = canvas.drop_piece("hornby-oo", "R604", to_scene((0, -500)))
+    canvas.scene().clearSelection()
+    assert window.parts_panel.highlighted() == []
+
+    QTest.mouseClick(canvas.viewport(), Qt.LeftButton, Qt.NoModifier, px(canvas, *middle(straights[0])))
+    assert window.parts_panel.highlighted() == [("R600", "1 of 3")]
+
+    QTest.mouseClick(canvas.viewport(), Qt.LeftButton, Qt.ShiftModifier, px(canvas, *middle(curve)))
+    assert sorted(window.parts_panel.highlighted()) == [("R600", "1 of 3"), ("R604", "1")]
+
+    canvas.select_all()
+    assert sorted(window.parts_panel.highlighted()) == [("R600", "3"), ("R604", "1")]
+
+    QTest.keyClick(canvas, Qt.Key_Escape)
+    assert window.parts_panel.highlighted() == []
+
+
+def test_the_highlight_survives_an_edit(canvas):
+    from PySide6.QtCore import Qt
+    from PySide6.QtTest import QTest
+
+    from simple_track.gui.canvas import to_scene
+
+    window = canvas.window()
+    piece = canvas.drop_piece("peco-n-setrack", "ST1", to_scene((0, 0)))  # dropped pieces stay selected
+    assert window.parts_panel.highlighted() == [("ST1", "1")]
+    QTest.keyClick(canvas, Qt.Key_R)  # rotating rebuilds the parts list
+    assert window.parts_panel.highlighted() == [("ST1", "1")]
+    assert piece in canvas.selected_pieces()

@@ -56,6 +56,8 @@ in that script and re-run it.
   - Drag any selected piece to move the whole selection. When one of its free ends
     comes near another free end, the selection turns and joins on as a whole.
 - **R** / **Shift+R** rotates the selection 15°, and **Del** deletes it.
+- **Parts list:** selected track is highlighted in the parts list. Where only some of a
+  part are selected, Qty shows how many, e.g. "2 of 16".
 - **Wheel** zooms, **right- or middle-drag** pans, and **F** zooms to fit.
 - **Undo/redo:** Ctrl+Z / Ctrl+Shift+Z.
 - **File:** layouts save as `.strack` files (JSON). Open them from File ▸ Open.
